@@ -13,7 +13,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // Apply to all endpoints
-                        .allowedOrigins("http://localhost:3000") // Allow only React frontend on localhost:3000
+                        .allowedOrigins("http://localhost:3001", "http://localhost:3000") // Allow only React frontend on localhost:3000
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")  // Allow specific methods
                         .allowedHeaders("*")  // Allow any headers
                         .allowCredentials(true);  // Allow cookies to be sent (for session handling)

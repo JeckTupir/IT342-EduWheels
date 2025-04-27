@@ -8,20 +8,10 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import LogoutIcon from '@mui/icons-material/Logout';
 import busImage from '/assets/bus-image.png';
 import busLogo from '/assets/bus-logo.png';
-import eduwheelsLogo from '/assets/eduwheels-logo.png';
 import './LandingPage.css';
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 
-
-// const colors = {
-//     darkBrown: "#5A4040",
-//     lightGray: "#EEEEEE",
-//     mutedPink: "#CA8787",
-//     softPink: "#E1ACAC",
-//     primary: "#007BFF",
-//     secondary: "#6C757D",
-// };
 
 export default function LoggedInPage() {
     const navigate = useNavigate();
@@ -55,43 +45,17 @@ export default function LoggedInPage() {
         checkAuth();  // Check if the user is authenticated
     }, [navigate]);
 
-    const handleProfileClick = () => {
-        window.location.href = '/profile';
-    };
-
-    const handleLogoutClick = () => {
-        localStorage.removeItem('authToken');
-        window.location.href = '/';
-    };
 
     return (
         <Box className="landing-page">
             {/* Top Bar */}
-            <Box className="top-bar-modern">
-                <Link to="/" style={{ textDecoration: 'none' }}>
-                    <Avatar src={eduwheelsLogo} className="logo-modern" />
-                </Link>
-                <Box className="nav-links-modern">
-                    <Button color="inherit" component={Link} to="/about">About Us</Button>
-                    <Button color="inherit" component={Link} to="/vehicles">Vehicles</Button>
-                    <Button color="inherit" component={Link} to="/contact">Contact Us</Button>
-                    <Button variant="outlined" color="primary" onClick={handleProfileClick}>
-                        <AccountCircleOutlinedIcon />
-                        Profile
-                    </Button>
-                    <Button variant="contained" color="primary" onClick={handleLogoutClick}>
-                        <LogoutIcon />
-                        Log Out
-                    </Button>
-                </Box>
-            </Box>
 
             {/* Welcome Section */}
             <Box className="welcome-section-modern">
                 <Box className="welcome-text-modern">
                     <Typography variant="h1" className="title-modern">Welcome to EduWheels!</Typography>
                     <Typography variant="subtitle1" className="subtitle-modern">Safe, efficient, and reliable transportation solutions for students, ensuring peace of mind for parents and schools.</Typography>
-                    <Button variant="contained" color="primary" size="large" component={Link} to="/book" className="discover-button">
+                    <Button variant="contained" color="primary" size="large" component={Link} to="/booking" className="discover-button">
                         Discover Our Solutions
                     </Button>
                 </Box>

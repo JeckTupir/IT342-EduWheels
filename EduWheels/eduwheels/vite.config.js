@@ -7,4 +7,8 @@ export default defineConfig({
   server: {
     port: 3000, // Set your desired port here
   },
+  build: {
+    outDir: 'dist', // The directory Vite will use for the production build
+  },
+  base: '/eduwheels/'
 })

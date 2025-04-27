@@ -1,15 +1,9 @@
 /* BookingPage.css */
 
 .booking-root {
-    padding: 20px;
     background-color: #fce7e7;
+    padding: 10px;
     min-height: 100vh;
-}
-
-.booking-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
 }
 
 .back-icon {
@@ -22,7 +16,7 @@
     padding: 30px;
     border-radius: 10px;
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 3rem auto;
 }
 
 .booking-info h2 {

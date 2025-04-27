@@ -1,40 +1,36 @@
 // BookingPage.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './BookingPage.css'; // Link to your page-specific CSS
+import Header from '../HeaderLoggedIn';
+import axios from 'axios';
+import './BookingPage.css'; // Your page-specific CSS
 
 import { ArrowBackIosNew } from '@mui/icons-material';
 
-const vehicles = [
-    {
-        name: "Commuter Van — AUVIV",
-        imgSrc: "../uploads/9704c05c-15a3-4c18-9d84-0d340701c49b_image.png", // Replace with your actual image paths
-    },
-    {
-        name: "Volvo 9700 Grand L",
-        imgSrc: "../uploads/d53ed483-b971-44ee-862e-cc14098e7017_Untitled design (1) 1.png",
-        recommended: true,
-    },
-    {
-        name: "Minibus Toyota HiAce",
-        imgSrc: "/images/minibus-toyota.png",
-    }
-];
-
 export default function BookingPage() {
     const navigate = useNavigate();
+    const [vehicles, setVehicles] = useState([]); // <-- vehicles from backend
+
+    useEffect(() => {
+        const fetchVehicles = async () => {
+            try {
+                const response = await axios.get("http://localhost:8080/api/vehicles");
+                const availableVehicles = response.data.filter(vehicle => vehicle.status === "Available");
+                setVehicles(availableVehicles);
+            } catch (error) {
+                console.error("Error fetching vehicles:", error);
+            }
+        };
+
+        fetchVehicles();
+    }, []);
 
     const handleBookNow = () => {
-        // Navigate to booking confirmation or next step
         alert('Booking functionality coming soon!');
     };
 
     return (
         <div className="booking-root">
-            <div className="booking-header">
-                <ArrowBackIosNew className="back-icon" onClick={() => navigate(-1)} />
-            </div>
-
             <div className="booking-container">
                 <div className="booking-info">
                     <h2>Booking Info</h2>
@@ -43,11 +39,8 @@ export default function BookingPage() {
                     <div className="booking-form">
                         <div className="booking-form-group">
                             <label>Pick - Up</label>
-                            <select>
-                                <option>Select front gate or back gate</option>
-                                <option>Front Gate</option>
-                                <option>Back Gate</option>
-                            </select>
+                            <input type="text" placeholder="Enter your Address"/>
+                            <small>Choose in Maps ⓘ</small>
                         </div>
                         <div className="booking-form-group">
                             <label>Drop - Off</label>
@@ -58,19 +51,29 @@ export default function BookingPage() {
                 </div>
 
                 <div className="booking-recommendation">
-                    <h3>Booking Recommendation</h3>
-                    <p>The vehicles automatically change depending on their capacity and choose the recommended vehicle to book a ride.</p>
+                    <h3>Available Vehicles</h3>
+                    <p>The vehicles automatically change depending on their capacity and availability.</p>
 
                     <div className="vehicle-carousel">
-                        {vehicles.map((vehicle, index) => (
-                            <div
-                                key={index}
-                                className={`vehicle-card ${vehicle.recommended ? 'recommended' : ''}`}
-                            >
-                                <img src={vehicle.imgSrc} alt={vehicle.name} />
-                                <h4>{vehicle.name}</h4>
-                            </div>
-                        ))}
+                        {vehicles.length > 0 ? (
+                            vehicles.map((vehicle, index) => (
+                                <div
+                                    key={index}
+                                    className={`vehicle-card ${vehicle.recommended ? 'recommended' : ''}`}
+                                >
+                                    <img
+                                        src={`http://localhost:8080/api/vehicles/uploads/${vehicle.photoPath}`}
+                                        alt={vehicle.type}
+                                        // onError={(e) => { e.target.src = "/images/default-bus.png"; }} // fallback image
+                                    />
+                                    <h4>{vehicle.type}</h4>
+                                    <p>Capacity: {vehicle.capacity}</p>
+                                    <p>Plate Number: {vehicle.plateNumber}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No available vehicles at the moment.</p>
+                        )}
                     </div>
 
                     <button className="book-now-button" onClick={handleBookNow}>

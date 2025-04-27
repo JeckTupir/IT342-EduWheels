@@ -160,7 +160,7 @@ export default function Login() {
                             className="signup-text"
                             style={{
                                 color: '#ffffff',
-                                textDecoration: 'underline',
+                                textDecoration: 'none',
                                 fontWeight: 'bold'
                             }}
                         >
