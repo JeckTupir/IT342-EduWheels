@@ -6,11 +6,11 @@ import './LandingPage/LandingPage.css'; // reusing your styles
 
 export default function LandingHeader() {
     const handleSignUpClick = () => {
-        window.location.href = '/signup';
+        window.location.href = '/eduwheels/signup';
     };
 
     const handleLoginClick = () => {
-        window.location.href = '/login';
+        window.location.href = '/eduwheels/login';
     };
 
     return (

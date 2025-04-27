@@ -9,7 +9,7 @@ import Profile from './pages/ProfilePage/Profile.jsx';
 import Booking from './pages/BookingPage/BookingPage.jsx';
 import AdminDashboard from './pages/AdminDashboardPage/AdminDashboardPage.jsx';
 import AdminVehicles from './pages/AdminDashboardPage/AdminVehiclesPage.jsx';
-// import AdminBookings from './pages/AdminDashboardPage/AdminBookingsPage.jsx';
+import AdminBookings from './pages/AdminDashboardPage/AdminBookingsPage.jsx';
 // import AdminReviews from './pages/AdminDashboardPage/AdminReviewsPage.jsx';
 // import AdminReports from './pages/AdminDashboardPage/AdminReportsPage.jsx';
 import AdminUsers from './pages/AdminDashboardPage/AdminUsersPage.jsx';
@@ -37,7 +37,7 @@ const RoutesComponent = () => {
                 <Route path="/admin" element={<AdminDashboard />}>
                     <Route path="dashboard" element={<div>Welcome to the Dashboard Content</div>} />
                     <Route path="vehicles" element={<AdminVehicles />} />
-                    {/* <Route path="bookings" element={<AdminBookings />} /> */}
+                    <Route path="bookings" element={<AdminBookings />} />
                     {/* <Route path="reviews" element={<AdminReviews />} /> */}
                     {/* <Route path="reports" element={<AdminReports />} /> */}
                     <Route path="users" element={<AdminUsers />} />

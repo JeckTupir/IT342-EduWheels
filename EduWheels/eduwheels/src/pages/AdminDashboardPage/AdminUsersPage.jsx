@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box,
     Typography,
@@ -31,6 +31,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Separate CSS (AdminUsersPage.module.css)
 // import './AdminUsersPage.module.css'; // Removed - all styles are in the immersive
+
+const getAuthToken = () => {
+    return localStorage.getItem('token'); // Example: retrieve from local storage
+};
 
 const API_BASE_URL = 'http://localhost:8080/users'; // Updated base URL to /users
 
@@ -110,19 +114,22 @@ const StyledAvatar = styled(Avatar)({
 
 const MotionTableRow = motion(StyledTableRow);
 
-const UserRow = ({ user, onEdit, onDelete }) => (
+const UserRow = ({ user, onEdit, onDelete }) => ( // Use userid
     <MotionTableRow
-        key={user.userId}
+        key={user.userid} // Use userid
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
     >
         <StyledTableCell component="th" scope="row">
-            {user.schoolid}
+            {user.schoolid || 'N/A'} {/* Display schoolid */}
         </StyledTableCell>
         <StyledTableCell>
             <Box display="flex" alignItems="center">
-                <StyledAvatar src={user.profilePicture} alt={user.firstName} />
+                {/* Use a placeholder if profilePicture is missing */}
+                <StyledAvatar alt={user.firstName}>
+                    {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                </StyledAvatar>
                 <div>
                     <Typography variant="subtitle2">{user.firstName} {user.lastName}</Typography>
                     <Typography variant="caption" color="textSecondary">{user.email}</Typography>
@@ -135,38 +142,87 @@ const UserRow = ({ user, onEdit, onDelete }) => (
             <StyledIconButton aria-label="edit" onClick={() => onEdit(user)} color="primary">
                 <EditIcon />
             </StyledIconButton>
-            <StyledIconButton aria-label="delete" onClick={() => onDelete(user.userId)} color="error">
+            <StyledIconButton aria-label="delete" onClick={() => onDelete(user.userid)} color="error"> {/* Use userid */}
                 <DeleteIcon />
             </StyledIconButton>
         </StyledTableCell>
     </MotionTableRow>
 );
 
+
 const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
-    const [newUser, setNewUser] = useState(user);
+    const [currentUserData, setCurrentUserData] = useState({}); // Renamed state variable
     const [error, setError] = useState('');
 
     useEffect(() => {
-        setNewUser(user);
-    }, [user]);
+        // Initialize state based on user prop and dialog type
+        if (user) {
+            // Ensure all expected fields are present, defaulting if necessary
+            setCurrentUserData({
+                userid: user.userid ?? null, // Keep userid if present (for edits)
+                username: user.username || '',
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                email: user.email || '',
+                schoolid: user.schoolid || '', // Add schoolid
+                role: user.role || 'User',     // Default role
+                password: '', // Always clear password field on open
+                // profilePicture: user.profilePicture || '', // Profile picture handling removed for simplicity, add back if needed
+            });
+        }
+        setError(''); // Clear error when dialog opens or user changes
+    }, [user, open]); // Rerun effect if user or open state changes
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setNewUser({ ...newUser, [name]: value });
+        setCurrentUserData({ ...currentUserData, [name]: value });
     };
 
     const handleSave = () => {
-        if (!newUser.username || !newUser.firstName || !newUser.lastName || !newUser.email || !newUser.role) {
-            setError('Please fill in all required fields.');
+        // Add validation for schoolid
+        if (!currentUserData.username || !currentUserData.firstName || !currentUserData.lastName || !currentUserData.email || !currentUserData.role || !currentUserData.schoolid) {
+            setError('Please fill in all required fields (Username, Names, Email, School ID, Role).');
             return;
         }
-        if (dialogType === 'create' && !newUser.password) {
+        if (dialogType === 'create' && !currentUserData.password) {
             setError('Please provide a password for the new user.');
             return;
         }
+        // Basic email validation
+        if (!/\S+@\S+\.\S+/.test(currentUserData.email)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+        // Basic school ID validation (adjust regex/logic if needed)
+        if (!/^\d{9}$/.test(currentUserData.schoolid.replace(/-/g, ''))) {
+            setError('School ID must be 9 digits.');
+            return;
+        }
+
         setError(''); // Clear any previous error
-        onSave(newUser);
+
+        // Prepare data for saving (remove password if it's an edit and wasn't changed)
+        const dataToSave = { ...currentUserData };
+        if (dialogType === 'edit') {
+            // Decide if you want to allow password changes here.
+            // If not, remove password field entirely for edit mode.
+            // If yes, only include password if the field is not empty.
+            delete dataToSave.password; // Don't send password on normal edit
+        }
+        // Remove userid for create operations as it's generated by backend
+        if (dialogType === 'create') {
+            delete dataToSave.userid;
+        }
+
+
+        onSave(dataToSave); // Pass the validated and prepared data
     };
+
+
+    // Render null if not open to ensure state reset via useEffect
+    if (!open) {
+        return null;
+    }
 
     return (
         <StyledDialog open={open} onClose={onClose} aria-labelledby="form-dialog-title">
@@ -175,7 +231,7 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
             </DialogTitle>
             <DialogContent>
                 {error && (
-                    <Alert severity="error" className="mb-3">
+                    <Alert severity="error" style={{ marginBottom: '16px' }}> {/* Use style for margin */}
                         <AlertTitle>Error</AlertTitle>
                         {error}
                     </Alert>
@@ -188,7 +244,7 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
                     label="Username"
                     type="text"
                     fullWidth
-                    value={newUser.username || ''}
+                    value={currentUserData.username || ''}
                     onChange={handleInputChange}
                     required
                 />
@@ -199,7 +255,7 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
                     label="First Name"
                     type="text"
                     fullWidth
-                    value={newUser.firstName || ''}
+                    value={currentUserData.firstName || ''}
                     onChange={handleInputChange}
                     required
                 />
@@ -210,7 +266,7 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
                     label="Last Name"
                     type="text"
                     fullWidth
-                    value={newUser.lastName || ''}
+                    value={currentUserData.lastName || ''}
                     onChange={handleInputChange}
                     required
                 />
@@ -221,10 +277,25 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
                     label="Email"
                     type="email"
                     fullWidth
-                    value={newUser.email || ''}
+                    value={currentUserData.email || ''}
+                    onChange={handleInputChange}
+                    required
+                    // Disable email editing for existing users if needed
+                    // disabled={dialogType === 'edit'}
+                />
+                {/* Add School ID Field */}
+                <StyledTextField
+                    margin="dense"
+                    id="schoolid"
+                    name="schoolid"
+                    label="School ID (9 digits)"
+                    type="text" // Keep as text to allow hyphens, backend will strip
+                    fullWidth
+                    value={currentUserData.schoolid || ''}
                     onChange={handleInputChange}
                     required
                 />
+                {/* Only show password field when creating a new user */}
                 {dialogType === 'create' && (
                     <StyledTextField
                         margin="dense"
@@ -233,27 +304,28 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
                         label="Password"
                         type="password"
                         fullWidth
-                        value={newUser.password || ''}
+                        value={currentUserData.password || ''}
                         onChange={handleInputChange}
                         required
                     />
                 )}
-                <StyledFormControl fullWidth margin="dense">
+                <StyledFormControl fullWidth margin="dense" required>
                     <InputLabel id="role-label">Role</InputLabel>
                     <Select
                         labelId="role-label"
                         id="role"
                         name="role"
-                        value={newUser.role || ''}
+                        value={currentUserData.role || ''}
                         onChange={handleInputChange}
                         label="Role"
-                        required
                     >
                         <MenuItem value="Admin">Admin</MenuItem>
-                        <MenuItem value="Staff">Staff</MenuItem>
+                        {/* Add other roles as needed */}
                         <MenuItem value="User">User</MenuItem>
+                        {/* <MenuItem value="Staff">Staff</MenuItem> */}
                     </Select>
                 </StyledFormControl>
+                {/* Profile Picture field removed for simplicity, add back if needed
                 <StyledTextField
                     margin="dense"
                     id="profilePicture"
@@ -261,15 +333,15 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
                     label="Profile Picture URL"
                     type="text"
                     fullWidth
-                    value={newUser.profilePicture || ''}
+                    value={currentUserData.profilePicture || ''}
                     onChange={handleInputChange}
-                />
+                /> */}
             </DialogContent>
             <DialogActions>
-                <StyledButton onClick={onClose} color="primary">
+                <StyledButton onClick={onClose} color="secondary"> {/* Changed color */}
                     Cancel
                 </StyledButton>
-                <StyledButton onClick={handleSave} color="primary">
+                <StyledButton onClick={handleSave} variant="contained" color="primary"> {/* Added variant */}
                     {dialogType === 'create' ? 'Create' : 'Update'}
                 </StyledButton>
             </DialogActions>
@@ -277,20 +349,24 @@ const CreateEditUserDialog = ({ open, onClose, user, onSave, dialogType }) => {
     );
 };
 
-const DeleteUserDialog = ({ open, onClose, userId, onDelete }) => {
+
+const DeleteUserDialog = ({ open, onClose, userId, onDelete }) => { // Use userId for clarity, but it's the id value
+    if (!open) return null; // Don't render if not open
+
     return (
         <Dialog open={open} onClose={onClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-            <DialogTitle id="alert-dialog-title">{"Delete User"}</DialogTitle>
+            <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                     Are you sure you want to delete this user? This action cannot be undone.
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <StyledButton onClick={onClose} color="primary">
+                <StyledButton onClick={onClose} color="secondary">
                     Cancel
                 </StyledButton>
-                <StyledButton onClick={() => onDelete(userId)} color="error">
+                {/* Pass the actual userId to delete */}
+                <StyledButton onClick={() => onDelete(userId)} color="error" variant="contained">
                     Delete
                 </StyledButton>
             </DialogActions>
@@ -298,134 +374,195 @@ const DeleteUserDialog = ({ open, onClose, userId, onDelete }) => {
     );
 };
 
+
 const AdminUsersPage = () => {
     const [users, setUsers] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
-    const [dialogType, setDialogType] = useState('create'); // 'create' or 'edit'
-    const [selectedUser, setSelectedUser] = useState({
-        userId: null,
-        username: '',
-        firstName: '',
-        lastName: '',
-        email: '',
-        role: '',
-        profilePicture: '',
-    });
+    const [dialogType, setDialogType] = useState('create');
+    const [selectedUser, setSelectedUser] = useState(null); // Initialize as null
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const [userToDelete, setUserToDelete] = useState(null);
+    const [userToDeleteId, setUserToDeleteId] = useState(null); // Store only the ID
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState(null); // For fetch errors
+    const [dialogError, setDialogError] = useState(''); // Separate error for dialog actions
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
+    // --- Fetch Users ---
+    const fetchUsers = useCallback(async () => { // Use useCallback
         setLoading(true);
-        setError(null);
+        setError(null); // Clear previous fetch errors
+        const token = getAuthToken();
+        if (!token) {
+            setError("Authentication token not found. Please log in.");
+            setLoading(false);
+            return;
+        }
+
         try {
-            const response = await fetch(API_BASE_URL);
+            const response = await fetch(API_BASE_URL, {
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Add Authorization header
+                },
+            });
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Try parsing error message from backend if available
+                let errorMsg = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) { /* Ignore if response is not JSON */ }
+                throw new Error(errorMsg);
             }
             const data = await response.json();
-            setUsers(data);
+            // Ensure userid is used consistently
+            const usersWithCorrectId = data.map(user => ({ ...user, id: user.userid })); // Map backend 'userid' to frontend 'id' if needed, or just use userid everywhere
+            setUsers(data); // Assuming backend returns 'userid'
         } catch (e) {
-            setError(e.message);
+            setError(e.message || "Failed to fetch users.");
         } finally {
             setLoading(false);
         }
-    };
+    }, []); // Empty dependency array means fetchUsers is created once
+
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]); // fetchUsers is now stable due to useCallback
 
     const handleOpenCreateDialog = () => {
-        setSelectedUser({
-            userId: null,
-            username: '',
-            firstName: '',
-            lastName: '',
-            email: '',
-            role: '',
-            profilePicture: '',
-        });
+        setSelectedUser({}); // Use an empty object for create
         setDialogType('create');
+        setDialogError(''); // Clear previous dialog errors
         setOpenDialog(true);
     };
 
     const handleOpenEditDialog = (user) => {
-        setSelectedUser(user);
+        setSelectedUser(user); // Pass the full user object
         setDialogType('edit');
+        setDialogError(''); // Clear previous dialog errors
         setOpenDialog(true);
     };
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
+        setSelectedUser(null); // Clear selected user on close
     };
 
-    const handleSaveUser = async (user) => {
+    // --- Save User (Create or Update) ---
+    const handleSaveUser = async (userData) => {
+        setDialogError(''); // Clear previous errors
+        const token = getAuthToken();
+        if (!token) {
+            setDialogError("Authentication token not found.");
+            return; // Don't proceed without token
+        }
+
+        const isCreating = dialogType === 'create';
+        const url = isCreating ? API_BASE_URL : `${API_BASE_URL}/${userData.userid}`; // Use userid for update URL
+        const method = isCreating ? 'POST' : 'PUT';
+
+        // Prepare the body, ensure userid is not sent on create
+        const body = { ...userData };
+        if (isCreating) {
+            delete body.userid; // Remove null/undefined userid before sending
+        }
+        // Optionally remove password if empty during edit, or handle password changes specifically
+        if (!isCreating && (!body.password || body.password.trim() === '')) {
+            delete body.password;
+        }
+
+
         try {
-            if (dialogType === 'create') {
-                const response = await fetch(`${API_BASE_URL}/signup`, { // Changed to /signup
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(user),
-                });
-                if (!response.ok) {
-                    const errorData = await response.json(); //attempt to get error message.
-                    throw new Error(errorData.message || `Failed to create user: ${response.status}`);
-                }
-                const createdUser = await response.json();
-                setUsers([...users, createdUser]);
-            } else {
-                const response = await fetch(`${API_BASE_URL}/${user.userId}`, {
-                    method: 'PUT', //correct method
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(user),
-                });
-                if (!response.ok) {
-                    throw new Error(`Failed to update user: ${response.status}`);
-                }
-                const updatedUser = await response.json();
-                setUsers(users.map((u) => (u.userId === updatedUser.userId ? updatedUser : u)));
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Add Authorization header
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                let errorMsg = `Failed to ${isCreating ? 'create' : 'update'} user. Status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg; // Use backend message if available
+                } catch (e) { /* Ignore if response is not JSON */ }
+                throw new Error(errorMsg);
             }
+
+            const resultData = await response.json(); // Backend now returns the created/updated user
+
+            // Update state immediately for better UX
+            if (isCreating) {
+                setUsers(prevUsers => [...prevUsers, resultData]);
+            } else {
+                setUsers(prevUsers =>
+                    prevUsers.map(u => (u.userid === resultData.userid ? resultData : u)) // Use userid
+                );
+            }
+
             handleCloseDialog();
-            fetchUsers();
+            // fetchUsers(); // Optional: Re-fetch if you want to ensure sync, but optimistic update is faster
         } catch (e) {
-            setError(e.message);
+            setDialogError(e.message || `An error occurred while ${isCreating ? 'creating' : 'updating'} the user.`);
         }
     };
 
-    const handleOpenDeleteDialog = (userId) => {
-        setUserToDelete(userId);
+
+    // --- Delete User ---
+    const handleOpenDeleteDialog = (id) => { // Receive userid
+        setUserToDeleteId(id); // Store the id
         setOpenDeleteDialog(true);
     };
 
     const handleCloseDeleteDialog = () => {
         setOpenDeleteDialog(false);
+        setUserToDeleteId(null); // Clear the id
     };
 
-    const handleDeleteUser = async (id) => {
+    const handleDeleteUser = async (id) => { // Receive userid
+        setError(null); // Clear main page error
+        const token = getAuthToken();
+        if (!token) {
+            setError("Authentication token not found.");
+            handleCloseDeleteDialog(); // Close the confirmation dialog
+            return;
+        }
+
         try {
-            const response = await fetch(`${API_BASE_URL}/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/${id}`, { // Use the correct id
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Add Authorization header
+                },
             });
-            if (!response.ok) {
-                throw new Error(`Failed to delete user: ${response.status}`);
+
+            // Check for 204 No Content or other success statuses (like 200 OK or 202 Accepted)
+            if (!response.ok && response.status !== 204) { // Check if response is NOT ok AND NOT 204
+                let errorMsg = `Failed to delete user. Status: ${response.status}`;
+                try {
+                    // Attempt to get error message if backend sends one on failure (e.g., 404)
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) { /* Ignore if error response is not JSON */ }
+                throw new Error(errorMsg);
             }
-            setUsers(users.filter((user) => user.userId !== id));
-            handleCloseDeleteDialog();
-            fetchUsers();
+
+            // If deletion was successful (200, 202, 204), update state
+            setUsers(prevUsers => prevUsers.filter((user) => user.userid !== id)); // Use userid
+            handleCloseDeleteDialog(); // Close confirmation dialog
+            // fetchUsers(); // Optional: Re-fetch instead of local filter if preferred
         } catch (e) {
-            setError(e.message);
+            setError(e.message || "An error occurred while deleting the user."); // Show error on the main page
+            handleCloseDeleteDialog(); // Still close the dialog on error
         }
     };
 
+
+    // --- Pagination and Filtering ---
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
@@ -435,43 +572,59 @@ const AdminUsersPage = () => {
         setPage(0);
     };
 
+    // Ensure filtering works even if some fields are null/undefined
     const filteredUsers = users.filter((user) =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchTerm.toLowerCase())
+        (user.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.firstName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.lastName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.role?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.schoolid?.toLowerCase() || '').includes(searchTerm.toLowerCase()) // Add schoolid filter
     );
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredUsers.length - page * rowsPerPage);
     const displayedUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
-        <Box className="admin-users-page">
-            <Typography variant="h4" className="page-title">
+        <Box sx={{ padding: 3 }}> {/* Use sx prop for padding */}
+            <Typography variant="h4" gutterBottom> {/* Add gutterBottom */}
                 Manage Users
             </Typography>
-            <Box display="flex" justifyContent="space-between" alignItems="center" className="mb-4">
+            {/* Display general fetch error */}
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    <AlertTitle>Error</AlertTitle>
+                    {error}
+                </Alert>
+            )}
+            {/* Display dialog action error */}
+            {dialogError && (
+                <Alert severity="warning" sx={{ mb: 2 }}> {/* Changed severity */}
+                    <AlertTitle>Action Failed</AlertTitle>
+                    {dialogError}
+                </Alert>
+            )}
+
+            <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <StyledButton
                     variant="contained"
                     color="primary"
                     startIcon={<AddIcon />}
                     onClick={handleOpenCreateDialog}
-                    className="add-user-button"
                 >
                     Add New User
                 </StyledButton>
-                <div className="search-input-wrapper">
-                    <TextField
-                        id="search"
-                        type="text"
-                        placeholder="Search Users..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                    <SearchIcon className="search-icon" />
-                </div>
+                <TextField // Simplified search input
+                    variant="outlined"
+                    size="small"
+                    placeholder="Search Users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    InputProps={{
+                        startAdornment: <SearchIcon position="start" />,
+                    }}
+                    sx={{ width: '300px' }}
+                />
             </Box>
 
             <StyledPaper>
@@ -494,33 +647,29 @@ const AdminUsersPage = () => {
                                             Loading users...
                                         </StyledTableCell>
                                     </TableRow>
-                                ) : error ? (
-                                    <TableRow>
-                                        <StyledTableCell colSpan={5} align="center" style={{ color: 'red' }}>
-                                            Error: {error}
-                                        </StyledTableCell>
-                                    </TableRow>
                                 ) : displayedUsers.length === 0 ? (
                                     <TableRow>
                                         <StyledTableCell colSpan={5} align="center">
-                                            No users found.
+                                            {searchTerm ? 'No users match your search.' : 'No users found.'}
                                         </StyledTableCell>
                                     </TableRow>
                                 ) : (
                                     displayedUsers.map((user) => (
                                         <UserRow
+                                            key={user.userid} // Use userid
                                             user={user}
                                             onEdit={handleOpenEditDialog}
-                                            onDelete={handleOpenDeleteDialog}
+                                            onDelete={handleOpenDeleteDialog} // Pass the handler itself
                                         />
                                     ))
                                 )}
                             </AnimatePresence>
-                            {emptyRows > 0 && (
-                                <TableRow style={{ height: 49 * emptyRows }}>
-                                    <StyledTableCell colSpan={5} />
+                            {/* Render empty rows if needed, or remove if pagination handles it */}
+                            {/* {emptyRows > 0 && !loading && (
+                                <TableRow style={{ height: 53 * emptyRows }}>
+                                    <TableCell colSpan={5} />
                                 </TableRow>
-                            )}
+                            )} */}
                         </TableBody>
                     </Table>
                 </StyledTableContainer>
@@ -535,19 +684,23 @@ const AdminUsersPage = () => {
                 />
             </StyledPaper>
 
+            {/* Dialogs */}
             <CreateEditUserDialog
                 open={openDialog}
                 onClose={handleCloseDialog}
-                user={selectedUser}
+                user={selectedUser} // Pass the selected user object
                 onSave={handleSaveUser}
                 dialogType={dialogType}
+                // Pass dialogError state if you want error inside dialog
+                // error={dialogError}
+                // clearError={() => setDialogError('')}
             />
 
             <DeleteUserDialog
                 open={openDeleteDialog}
                 onClose={handleCloseDeleteDialog}
-                userId={userToDelete}
-                onDelete={handleDeleteUser}
+                userId={userToDeleteId} // Pass the ID to delete
+                onDelete={handleDeleteUser} // Pass the actual delete function
             />
         </Box>
     );

@@ -1,19 +1,28 @@
-// Header.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Avatar } from '@mui/material';
 import { Link } from 'react-router-dom';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
-import eduwheelsLogo from '/assets/eduwheels-logo.png'; // use correct path
-import './LandingPage/LandingPage.css'; // Reuse same styling
+import eduwheelsLogo from '/assets/eduwheels-logo.png';
+import './LandingPage/LandingPage.css';
 
 export default function HeaderLoggedIn() {
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setUserRole(parsedUser.role);
+        }
+    }, []);
+
     const handleProfileClick = () => {
-        window.location.href = '/profile';
+        window.location.href = '/eduwheels/profile';
     };
 
     const handleLogoutClick = () => {
-        localStorage.removeItem('token');
+        localStorage.clear();
         window.location.href = '/';
     };
 
@@ -26,6 +35,14 @@ export default function HeaderLoggedIn() {
                 <Button color="inherit" component={Link} to="/about">About Us</Button>
                 <Button color="inherit" component={Link} to="/booking">Book Now</Button>
                 <Button color="inherit" component={Link} to="/contact">Contact Us</Button>
+
+                {/* 🛡️ Only show Admin Dashboard if userRole is Admin */}
+                {userRole === 'Admin' && (
+                    <Button color="inherit" component={Link} to="/admin">
+                        Admin Dashboard
+                    </Button>
+                )}
+
                 <Button variant="outlined" color="primary" onClick={handleProfileClick}>
                     <AccountCircleOutlinedIcon />
                     Profile

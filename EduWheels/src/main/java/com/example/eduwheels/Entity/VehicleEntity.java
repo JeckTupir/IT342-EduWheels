@@ -19,6 +19,9 @@ public class VehicleEntity {
     @Column(nullable = false)
     private int capacity;
 
+    @Column(name = "available_seats", nullable = false)
+    private int availableSeats;
+
     @Column(nullable = false)
     private String status;
 
@@ -32,10 +35,11 @@ public class VehicleEntity {
     public VehicleEntity() {
     }
 
-    public VehicleEntity(String plateNumber, String type, int capacity, String status, String photoPath, String vehicleName) {
+    public VehicleEntity(String plateNumber, String type, int capacity, int availableSeats, String status, String photoPath, String vehicleName) {
         this.plateNumber = plateNumber;
         this.type = type;
         this.capacity = capacity;
+        this.availableSeats = availableSeats;
         this.status = status;
         this.photoPath = photoPath;
         this.vehicleName = vehicleName;
@@ -72,6 +76,14 @@ public class VehicleEntity {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
     }
 
     public String getStatus() {
