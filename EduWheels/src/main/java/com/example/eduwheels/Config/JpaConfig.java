@@ -19,7 +19,7 @@ public class JpaConfig {
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(EntityManagerFactoryBuilder builder, DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.example.eduwheels.model") // Your model package
+                .packages("com.example.eduwheels.Entity") // Your model package
                 .persistenceUnit("default")
                 .build();
     }
