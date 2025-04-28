@@ -65,7 +65,14 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no sessions for JWT
                 )
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/users/login", "/users/signup", "/oauth2/**", "/complete-profile").permitAll()
+                        .requestMatchers("/users/login",
+                                "/users/signup",
+                                "/oauth2/**",
+                                "/complete-profile",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
