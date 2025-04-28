@@ -18,7 +18,7 @@ import Layout from './pages/Layout.jsx'; // <-- IMPORTANT: import the Layout
 
 const RoutesComponent = () => {
     return (
-        <Router basename="/eduwheels">
+        <Router>
             <Routes>
                 {/* Layout will wrap the public and user pages */}
                 <Route path="/" element={<Layout />}>
