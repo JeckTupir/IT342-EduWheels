@@ -49,7 +49,7 @@ export default function Login() {
                 const { user, token } = response.data;
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(user));
-                window.location.href = '/logged-in';
+                window.location.href = '/eduwheels/logged-in';
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -66,7 +66,7 @@ export default function Login() {
     };
 
     const handleBack = () => {
-        window.location.href = '/';
+        window.location.href = '/eduwheels';
     };
 
     return (
@@ -156,11 +156,11 @@ export default function Login() {
                     >
                         Don't have an account?{' '}
                         <a
-                            href="/signup"
+                            href="/eduwheels/signup"
                             className="signup-text"
                             style={{
                                 color: '#ffffff',
-                                textDecoration: 'underline',
+                                textDecoration: 'none',
                                 fontWeight: 'bold'
                             }}
                         >

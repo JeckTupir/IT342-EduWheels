@@ -7,4 +7,5 @@ export default defineConfig({
   server: {
     port: 3000, // Set your desired port here
   },
+  base: process.env.VITE_BASE_PATH || "/IT342-EduWheels",
 })

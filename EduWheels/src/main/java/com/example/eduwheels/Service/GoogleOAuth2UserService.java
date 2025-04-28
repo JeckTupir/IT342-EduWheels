@@ -46,6 +46,7 @@ public class GoogleOAuth2UserService {
             transientUser.setEmail(email);
             transientUser.setFirstName(firstName);
             transientUser.setLastName(lastName);
+            transientUser.setRole("User");
             // Generate a username (can be refined later if needed)
             transientUser.setUsername(firstName != null && lastName != null ? firstName + lastName : email);
             transientUser.setPassword(""); // No password needed for OAuth2 users

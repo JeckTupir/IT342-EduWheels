@@ -70,6 +70,7 @@ public class VehicleService {
                     existing.setCapacity(updated.getCapacity());
                     existing.setStatus(updated.getStatus());
                     existing.setPhotoPath(updated.getPhotoPath());
+                    existing.setVehicleName(updated.getVehicleName());
                     return vehicleRepository.save(existing);
                 })
                 .orElse(null);
