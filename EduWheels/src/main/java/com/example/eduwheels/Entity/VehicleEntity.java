@@ -19,22 +19,30 @@ public class VehicleEntity {
     @Column(nullable = false)
     private int capacity;
 
+    @Column(name = "available_seats", nullable = false)
+    private int availableSeats;
+
     @Column(nullable = false)
     private String status;
 
     @Column(name = "photo_path", columnDefinition = "TEXT")
     private String photoPath; // Store the path to the image file
 
+    @Column(name = "vehicle_name", nullable = false)
+    private String vehicleName;
+
     // Constructors
     public VehicleEntity() {
     }
 
-    public VehicleEntity(String plateNumber, String type, int capacity, String status, String photoPath) {
+    public VehicleEntity(String plateNumber, String type, int capacity, int availableSeats, String status, String photoPath, String vehicleName) {
         this.plateNumber = plateNumber;
         this.type = type;
         this.capacity = capacity;
+        this.availableSeats = availableSeats;
         this.status = status;
         this.photoPath = photoPath;
+        this.vehicleName = vehicleName;
     }
 
     // Getters and Setters
@@ -70,12 +78,22 @@ public class VehicleEntity {
         this.capacity = capacity;
     }
 
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+
+        this.vehicleName = vehicleName;
     }
 
     public String getPhotoPath() {
@@ -84,5 +102,13 @@ public class VehicleEntity {
 
     public void setPhotoPath(String photoPath) {
         this.photoPath = photoPath;
+    }
+
+    public String getVehicleName() {
+        return vehicleName;
+    }
+
+    public void setVehicleName(String vehicleName) {
+        this.vehicleName = vehicleName;
     }
 }

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="#FCDADA"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:elevation="4dp"
+    android:gravity="center_vertical">
+
+    <!-- Vehicle Image -->
+    <ImageView
+        android:id="@+id/busImage"
+        android:layout_width="100dp"
+        android:layout_height="80dp"
+        android:src="@drawable/bus"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Right Section: Details + Button -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Type -->
+        <TextView
+            android:id="@+id/vehicleType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/vehicleName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vehicle Name"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:layout_marginTop="2dp" />
+
+        <!-- Capacity -->
+        <TextView
+            android:id="@+id/capacity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capacity: 0"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp" />
+
+        <!-- Plate Number -->
+        <TextView
+            android:id="@+id/plateNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Plate Number"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp" />
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp" />
+
+        <!-- Book Now Button -->
+        <Button
+            android:id="@+id/bookbtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book Now"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#D48C8C"
+            android:layout_marginTop="8dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:elevation="6dp"
+            android:layout_gravity="end" />
+    </LinearLayout>
+
+</LinearLayout>

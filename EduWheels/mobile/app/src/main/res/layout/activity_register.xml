@@ -1,0 +1,141 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FBC7C7">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Logo Placeholder -->
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="32dp"
+            android:src="@drawable/eduone" />
+
+        <!-- Email -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Email"
+            android:id="@+id/email"
+            android:background="@android:color/white"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:elevation="2dp" />
+
+        <!-- Username -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Username"
+            android:id="@+id/username"
+            android:background="@android:color/white"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:elevation="2dp" />
+
+        <!-- First Name -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="First Name"
+            android:id="@+id/firstName"
+            android:background="@android:color/white"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:elevation="2dp" />
+
+        <!-- Last Name -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Last Name"
+            android:id="@+id/lastName"
+            android:background="@android:color/white"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:elevation="2dp" />
+
+        <!-- School ID -->
+
+        <!-- Password -->
+        <EditText
+            android:id="@+id/schoolId"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:background="@android:color/white"
+            android:elevation="2dp"
+            android:hint="School ID"
+            android:paddingHorizontal="16dp"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Password"
+            android:id="@+id/password"
+            android:inputType="textPassword"
+            android:background="@android:color/white"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:elevation="2dp" />
+
+        <!-- Re-enter Password -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Re-enter Password"
+            android:id="@+id/repassword"
+            android:inputType="textPassword"
+            android:background="@android:color/white"
+            android:paddingHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:elevation="2dp" />
+
+        <!-- Register Button -->
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Register"
+            android:id="@+id/registerButton"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:paddingHorizontal="32dp"
+            android:paddingVertical="12dp"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center"
+            android:background="#D48C8C"
+            android:elevation="8dp" />
+
+        <!-- Back to Login -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/loginRedirectText"
+            android:text="Already have an account? Log in here"
+            android:textColor="#0000FF"
+            android:textSize="14sp"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center" />
+
+    </LinearLayout>
+</ScrollView>

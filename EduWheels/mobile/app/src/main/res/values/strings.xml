@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">EduWheels</string>
+
+    <string-array name="header_options">
+        <item>Profile</item>
+        <item>Vehicle</item>
+        <item>Contact Us</item>
+        <item>About Us</item>
+        <item>Need Help?</item>
+    </string-array>
+
+</resources>

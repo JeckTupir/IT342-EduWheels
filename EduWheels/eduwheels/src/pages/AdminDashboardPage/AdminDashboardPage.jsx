@@ -8,7 +8,7 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
-import eduwheelsLogo from '/assets/eduwheels-logo.png';
+import eduwheelsLogo from '/assets/bus-logo.png';
 import './AdminDashboardPage.css';
 import { Link, useNavigate, Outlet } from 'react-router-dom';
 
@@ -32,33 +32,33 @@ export default function AdminDashboardPage() {
         <div>
             <Toolbar className="toolbar-logo">
                 <Avatar src={eduwheelsLogo} alt="EduWheels Logo" className="logo-admin" />
-                <Typography variant="h6" noWrap className="logo-text">
-                    EduWheels Admin
+                <Typography variant="h5" noWrap className="logo-text">
+                    EduWheels
                 </Typography>
             </Toolbar>
             <List>
                 <ListItem button component={Link} to="/admin/dashboard" className="nav-item">
-                    <ListItemIcon><DashboardIcon className="nav-icon" /></ListItemIcon>
+                    <ListItemIcon><DashboardIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Dashboard" />
                 </ListItem>
                 <ListItem button component={Link} to="/admin/vehicles" className="nav-item">
-                    <ListItemIcon><DirectionsBusIcon className="nav-icon" /></ListItemIcon>
+                    <ListItemIcon><DirectionsBusIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Vehicles" />
                 </ListItem>
                 <ListItem button component={Link} to="/admin/bookings" className="nav-item">
-                    <ListItemIcon><CalendarTodayIcon className="nav-icon" /></ListItemIcon>
+                    <ListItemIcon><CalendarTodayIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Bookings" />
                 </ListItem>
                 <ListItem button component={Link} to="/admin/reviews" className="nav-item">
-                    <ListItemIcon><RateReviewIcon className="nav-icon" /></ListItemIcon>
+                    <ListItemIcon><RateReviewIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Reviews" />
                 </ListItem>
                 <ListItem button component={Link} to="/admin/reports" className="nav-item">
-                    <ListItemIcon><AssessmentIcon className="nav-icon" /></ListItemIcon>
+                    <ListItemIcon><AssessmentIcon sx={{ color: '#5A4040' }} color="#5A4040" className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Report" />
                 </ListItem>
                 <ListItem button component={Link} to="/admin/users" className="nav-item">
-                    <ListItemIcon><PersonIcon className="nav-icon" /></ListItemIcon>
+                    <ListItemIcon><PersonIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Users" />
                 </ListItem>
             </List>

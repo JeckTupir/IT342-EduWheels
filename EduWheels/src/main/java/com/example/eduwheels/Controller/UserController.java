@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 import java.util.HashMap;
@@ -102,6 +103,7 @@ public class UserController {
             newUser.setUsername(username);
             newUser.setPassword(passwordEncoder.encode(rawPassword));
             newUser.setSchoolid(rawSchoolId);
+            newUser.setRole("User");
 
             googleOAuth2UserService.saveUserProfile(newUser);
             session.removeAttribute(SecurityConfig.PENDING_OAUTH2_USER_ATTRIBUTE_KEY);
@@ -120,6 +122,7 @@ public class UserController {
             userDetails.put("email", newUser.getEmail());
             userDetails.put("username", newUser.getUsername());         // ← NEW
             userDetails.put("schoolid", newUser.getSchoolid());
+            userDetails.put("role", newUser.getRole());
             userDetails.put("isProfileComplete", true);
 
             resp.put("user", userDetails);
@@ -143,6 +146,7 @@ public class UserController {
             details.put("email", pending.get("email"));
             details.put("firstName", pending.get("firstName"));
             details.put("lastName", pending.get("lastName"));
+            details.put("role", pending.get("role"));
             details.put("schoolid", "");
             details.put("isProfileComplete", false);
             return ResponseEntity.ok(details);
@@ -170,6 +174,7 @@ public class UserController {
                     details.put("email", user.getEmail());
                     details.put("firstName", user.getFirstName());
                     details.put("lastName", user.getLastName());
+                    details.put("role", user.getRole());
                     details.put("schoolid", user.getSchoolid() != null ? user.getSchoolid() : "");
                     details.put("isProfileComplete", user.getSchoolid() != null && !user.getSchoolid().isBlank());
                     return ResponseEntity.ok(details);
@@ -214,6 +219,9 @@ public class UserController {
         if (updatedData.containsKey("username")) {
             user.setUsername(updatedData.get("username"));
         }
+        if (updatedData.containsKey("role")) {
+            user.setRole(updatedData.get("role"));
+        }
         if (updatedData.containsKey("schoolId")) {
             String rawSchoolId = updatedData.get("schoolId").replace("-", "");
             if (rawSchoolId.length() != 9) {
@@ -230,6 +238,7 @@ public class UserController {
             userDetails.put("email", user.getEmail());
             userDetails.put("firstName", user.getFirstName());
             userDetails.put("lastName", user.getLastName());
+            userDetails.put("role", user.getRole());
             userDetails.put("schoolId", user.getSchoolid());
             userDetails.put("username", user.getUsername());
             return ResponseEntity.ok(Map.of("message", "Profile updated successfully.", "user", userDetails));
@@ -238,17 +247,17 @@ public class UserController {
         }
     }
 
-    @GetMapping
-    public List<UserEntity> getAllUsers() {
-        return userService.getAllUsers();
-    }
+//    @GetMapping
+//    public List<UserEntity> getAllUsers() {
+//        return userService.getAllUsers();
+//    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserEntity> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<UserEntity> getUserById(@PathVariable Long id) {
+//        return userService.getUserById(id)
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signUp(@RequestBody UserEntity user) {
@@ -297,7 +306,8 @@ public class UserController {
                         "id", user.getUserid(),
                         "name", user.getFirstName() + " " + user.getLastName(),
                         "email", user.getEmail(),
-                        "username", user.getUsername(),                 // ← NEW
+                        "username", user.getUsername(),
+                        "role", user.getRole(),// ← NEW
                         "schoolid", user.getSchoolid(),
                         "isProfileComplete", user.getSchoolid() != null && !user.getSchoolid().isBlank()
                 ));
@@ -309,9 +319,145 @@ public class UserController {
                 .body(Map.of("message", "Invalid credentials"));
     }
 
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+//        userService.deleteUser(id);
+//        return ResponseEntity.noContent().build();
+//    }
+
+    // --- MODIFIED/NEW ADMIN ENDPOINTS ---
+
+    // GET All Users (Add Admin Security)
+    @GetMapping
+    @PreAuthorize("hasRole('Admin')") // Secure this endpoint
+    public List<UserEntity> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    // GET User by ID (Keep as is, or add Admin Security if needed)
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('Admin')") // Optional: Secure if only admins can fetch by ID
+    public ResponseEntity<UserEntity> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // CREATE User (Admin Endpoint - Replaces using /signup for admin)
+    // Consider a different path like /admin/users if you want to keep /signup public
+    // For simplicity here, we modify /signup to check role or create a new POST /users
+    @PostMapping // Changed from /signup to POST /users for admin creation
+    @PreAuthorize("hasRole('Admin')") // Secure this endpoint
+    public ResponseEntity<?> createUserByAdmin(@RequestBody UserEntity user) {
+        // Basic validation (you might want more comprehensive validation)
+        if (userService.userExists(user.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Email already in use"));
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Password is required"));
+        }
+        if (user.getSchoolid() == null || user.getSchoolid().trim().isEmpty() || user.getSchoolid().replace("-", "").length() != 9) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Valid School ID (9 digits) is required"));
+        }
+        // Optional: Check School ID uniqueness if still required for admin creation
+        // if (userRepository.findBySchoolid(user.getSchoolid().replace("-", "")).isPresent()) {
+        //     return ResponseEntity.status(HttpStatus.CONFLICT)
+        //             .body(Map.of("message", "School ID already in use"));
+        // }
+
+
+        // Ensure role is set (default if needed, or validate allowed roles)
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("User"); // Default role or validate
+        }
+
+        // Encode password and format schoolId
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setSchoolid(user.getSchoolid().replace("-", ""));
+
+        try {
+            UserEntity createdUser = userService.createUser(user);
+            // Return the full user object including the generated ID
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (Exception e) {
+            // Log the exception e
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error creating user."));
+        }
+    }
+
+    // UPDATE User (Admin Endpoint)
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('Admin')") // Secure this endpoint
+    public ResponseEntity<?> updateUserByAdmin(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Optional<UserEntity> userOptional = userService.getUserById(id);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found."));
+        }
+
+        UserEntity user = userOptional.get();
+
+        // Apply updates selectively
+        if (updates.containsKey("firstName")) {
+            user.setFirstName((String) updates.get("firstName"));
+        }
+        if (updates.containsKey("lastName")) {
+            user.setLastName((String) updates.get("lastName"));
+        }
+        if (updates.containsKey("username")) {
+            // Optional: Check username uniqueness if needed
+            user.setUsername((String) updates.get("username"));
+        }
+        if (updates.containsKey("email")) {
+            // Optional: Check email uniqueness if needed
+            String newEmail = (String) updates.get("email");
+            if (!newEmail.equals(user.getEmail()) && userService.userExists(newEmail)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Email already in use by another user."));
+            }
+            user.setEmail(newEmail);
+        }
+        if (updates.containsKey("role")) {
+            // Optional: Validate role
+            user.setRole((String) updates.get("role"));
+        }
+        if (updates.containsKey("schoolid")) { // Changed from schoolId for consistency
+            String rawSchoolId = ((String) updates.get("schoolid")).replace("-", "");
+            if (rawSchoolId.length() != 9) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid School ID format."));
+            }
+            // Optional: Check School ID uniqueness if needed
+            // if (!rawSchoolId.equals(user.getSchoolid()) && userRepository.findBySchoolid(rawSchoolId).isPresent()) {
+            //    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "School ID already in use by another user."));
+            // }
+            user.setSchoolid(rawSchoolId);
+        }
+        // **Important**: Do not update password here unless specifically intended and handled securely.
+        // Admins typically reset passwords via a separate mechanism, not general update.
+
+        try {
+            UserEntity updatedUser = userRepository.save(user);
+            // Return the full updated user object
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            // Log the exception e
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Error updating user."));
+        }
+    }
+
+
+    // DELETE User (Add Admin Security)
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('Admin')") // Secure this endpoint
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        // Optional: Add check if user exists before deleting for better feedback,
+        // though deleteUser service method might already handle this.
+        if (!userService.getUserById(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
         userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // Correct: returns 204
     }
 }

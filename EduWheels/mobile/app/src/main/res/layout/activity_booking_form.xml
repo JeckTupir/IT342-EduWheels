@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF5F5"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#734E4E"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/eduthree" />
+
+            <ImageView
+                android:layout_width="53dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="270dp"
+                android:background="@drawable/men"
+                android:contentDescription="Menu Icon" />
+        </LinearLayout>
+
+        <!-- Back Button -->
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="start"
+             />
+
+        <!-- Form Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FCDADA"
+            android:padding="24dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Booking Info"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Please select your booking details"
+                android:textSize="14sp"
+                android:textColor="#4E342E"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Pick Up Location -->
+            <EditText
+                android:id="@+id/pickUpLocationInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select front gate or back gate"
+                android:background="@android:color/white"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Pick Up Time -->
+            <EditText
+                android:id="@+id/pickUpTimeInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g. 7:30 AM"
+                android:background="@android:color/white"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Drop Off Location -->
+            <EditText
+                android:id="@+id/dropOffLocationInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select front gate or back gate"
+                android:background="@android:color/white"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Drop Off Time -->
+            <EditText
+                android:id="@+id/dropOffTimeInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="e.g. 7:30 AM"
+                android:background="@android:color/white"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Number of Passengers -->
+            <EditText
+                android:id="@+id/passengerCountInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="No. Passengers"
+                android:background="@android:color/white"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+        </LinearLayout>
+
+        <!-- Book Button -->
+        <Button
+            android:id="@+id/confirmBookingBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book Now"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#D4A5A5"
+            android:elevation="8dp"
+            android:padding="12dp"
+            android:layout_gravity="center" />
+    </LinearLayout>
+</ScrollView>

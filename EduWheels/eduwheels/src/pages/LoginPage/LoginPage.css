@@ -1,14 +1,14 @@
 .login-page {
     background-color: #E1ACAC;
-    padding: 1.6rem;
+    padding: 40px;
 }
 
 .login-page .login-container {
     background-color: #E1ACAC;
     width: 400px;
-    height: 600px;
-    margin: 40px auto;
-    padding: 2rem;
+    height: 580px;
+    margin: 5px auto;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -16,7 +16,7 @@
 .login-page .login-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .login-page .logo-section {
