@@ -2,16 +2,15 @@
     background-color: #fce7e7; /* Light pink background */
     padding: 20px; /* Increased padding */
     min-height: 100vh;
-    font-family: sans-serif; /* Add a default font */
+    font-family: 'Inter', sans-serif;
 }
 
 .booking-container {
-    background: #E1ACAC;
+    background: #f6eded;
     padding: 30px 40px; /* More horizontal padding */
     border-radius: 10px;
     max-width: 1100px; /* Slightly wider max-width */
     margin: 3rem auto;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
     display: grid; /* Use grid for layout */
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Responsive columns */
     gap: 40px; /* Gap between columns */
@@ -25,7 +24,7 @@
 }
 
 .booking-info-section p {
-    color: #666; /* Slightly darker grey */
+    color: #333; /* Slightly darker grey */
     font-size: 14px;
     margin-bottom: 30px; /* More space below paragraph */
 }
@@ -158,7 +157,7 @@
 }
 
 .vehicle-recommendation-section p {
-    color: #666;
+    color: #333;
     font-size: 14px;
     margin-bottom: 25px;
 }
@@ -254,8 +253,7 @@
 
 /* Message when no vehicles are available */
 .no-vehicle-message {
-    color: #777;
-    font-style: italic;
+    color: #333;
     padding: 20px;
 }
 

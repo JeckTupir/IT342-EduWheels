@@ -27,7 +27,7 @@ export default function LoggedInPage() {
             }
 
             try {
-                const response = await axios.get('http://localhost:8080/users/me', {
+                const response = await axios.get('https://it-342-edu-wheels.vercel.app/users/me', {
                     headers: {
                         Authorization: `Bearer ${token}`  // Ensure the token is correctly set in the Authorization header
                     }

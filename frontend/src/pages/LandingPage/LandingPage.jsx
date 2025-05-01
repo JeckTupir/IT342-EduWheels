@@ -32,17 +32,17 @@ export default function LandingPage() {
                 <Typography variant="h2" className="section-title">Why Choose EduWheels?</Typography>
                 <Grid container spacing={4} justifyContent="center">
                     <Grid item xs={12} md={4} className="feature-item">
-                        <DirectionsBusIcon className="feature-icon" color="primary" style={{ fontSize: 40 }} />
+                        <DirectionsBusIcon className="feature-icon" style={{ fontSize: 40 }} />
                         <Typography variant="h6">Safe & Reliable</Typography>
                         <Typography variant="body2">Stringent safety protocols and well-maintained vehicles for secure transportation.</Typography>
                     </Grid>
                     <Grid item xs={12} md={4} className="feature-item">
-                        <HelpOutlineIcon className="feature-icon" color="primary" style={{ fontSize: 40 }} />
+                        <HelpOutlineIcon className="feature-icon" style={{ fontSize: 40 }} />
                         <Typography variant="h6">Efficient Scheduling</Typography>
                         <Typography variant="body2">Optimize routes and manage bookings effortlessly with our intuitive system.</Typography>
                     </Grid>
                     <Grid item xs={12} md={4} className="feature-item">
-                        <InfoOutlinedIcon className="feature-icon" color="primary" style={{ fontSize: 40 }} />
+                        <InfoOutlinedIcon className="feature-icon" style={{ fontSize: 40 }} />
                         <Typography variant="h6">Peace of Mind</Typography>
                         <Typography variant="body2">Real-time tracking and communication tools keep parents informed.</Typography>
                     </Grid>
@@ -57,7 +57,7 @@ export default function LandingPage() {
                         A vehicle management system designed for CIT-U to facilitate the scheduling, booking, and reservation of school vehicles.  We optimize transportation for students, faculty, and staff.
                     </Typography>
                     <Button variant="outlined" color="primary" component={Link} to="/about" className="our-story-button">
-                        Our Story
+                        More about us
                     </Button>
                 </Box>
                 <img src={busLogo} alt="Bus Logo" className="about-image-modern" />

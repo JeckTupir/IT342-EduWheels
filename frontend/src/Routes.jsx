@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LandingPage from './pages/LandingPage/LandingPage.jsx';
 import SignUpPage from './pages/SignUpPage/SignUpPage.jsx';
 import CompleteProfilePage from './pages/SignUpPage/CompleteProfilePage.jsx';
+import AboutUs from './pages/LandingPage/AboutUs.jsx';
+import ContactUs from './pages/LandingPage/ContactUs.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
 import LoggedIn from './pages/LandingPage/LoggedInPage.jsx';
 import Profile from './pages/ProfilePage/Profile.jsx';
@@ -25,6 +27,8 @@ const RoutesComponent = () => {
                     <Route index element={<LandingPage />} />
                     <Route path="logged-in" element={<LoggedIn />} />
                     <Route path="profile" element={<Profile />} />
+                    <Route path="about" element={<AboutUs />} />
+                    <Route path="contact" element={<ContactUs />} />
                     <Route path="booking" element={<Booking />} />
                     <Route path="oauth2/callback" element={<OAuthCallbackHandler />} />
                 </Route>

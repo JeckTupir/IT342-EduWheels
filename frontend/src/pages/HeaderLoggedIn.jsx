@@ -29,7 +29,7 @@ export default function HeaderLoggedIn() {
     return (
         <Box className="top-bar-modern">
             <Link to="/" style={{ textDecoration: 'none' }}>
-                <Avatar src={eduwheelsLogo} className="logo-modern" />
+                <img src={eduwheelsLogo} className="logo-modern" alt="EduWheels Logo"/>
             </Link>
             <Box className="nav-links-modern">
                 <Button color="inherit" component={Link} to="/about">About Us</Button>
