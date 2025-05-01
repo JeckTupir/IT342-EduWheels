@@ -49,7 +49,7 @@ export default function Login() {
                 const { user, token } = response.data;
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(user));
-                window.location.href = '/eduwheels/logged-in';
+                window.location.href = '/logged-in';
             }
         } catch (err) {
             console.error('Login error:', err);
@@ -66,7 +66,7 @@ export default function Login() {
     };
 
     const handleBack = () => {
-        window.location.href = '/eduwheels';
+        window.location.href = '/';
     };
 
     return (

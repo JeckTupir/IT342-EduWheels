@@ -18,7 +18,7 @@ export default function HeaderLoggedIn() {
     }, []);
 
     const handleProfileClick = () => {
-        window.location.href = '/eduwheels/profile';
+        window.location.href = '/profile';
     };
 
     const handleLogoutClick = () => {
