@@ -75,7 +75,7 @@ export default function Signup() {
             if (response.status === 201) {
                 setSuccess("Sign Up Successful! Redirecting to login...");
                 setTimeout(() => {
-                    window.location.href = '/eduwheels/login';
+                    window.location.href = '/login';
                 }, 2000);
             } else {
                 setError(`Unexpected success status: ${response.status}`);
