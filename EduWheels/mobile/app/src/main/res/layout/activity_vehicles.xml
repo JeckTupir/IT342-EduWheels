@@ -9,7 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#7A4949"
+        android:background="#FFD0D0"
         android:padding="16dp">
 
         <TextView
@@ -19,6 +19,8 @@
             android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
+
     </LinearLayout>
 
     <TextView

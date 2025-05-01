@@ -11,7 +11,7 @@ class Landing : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_landing)
 
-        val btnGetStarted = findViewById<Button>(R.id.btnGetStarted)
+        val btnGetStarted = findViewById<Button>(R.id.btnBookNow)
 
         btnGetStarted.setOnClickListener {
             // Replace LoginActivity with your actual target Activity

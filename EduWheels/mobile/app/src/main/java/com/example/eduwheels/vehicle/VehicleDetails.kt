@@ -7,12 +7,13 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import com.example.eduwheels.R
+import com.example.eduwheels.base.BaseActivity
 import com.example.eduwheels.booking.BookingForm
 
-class VehicleDetails : Activity() {
+class VehicleDetails : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_vehicle_details)
+        setContentLayout(R.layout.activity_vehicle_details)
 
         val brandInput = findViewById<TextView>(R.id.brandInput)
         val unitNameInput = findViewById<TextView>(R.id.unitNameInput)
@@ -35,7 +36,6 @@ class VehicleDetails : Activity() {
         statusInput.text = status
 
         bookBtn.setOnClickListener {
-            Toast.makeText(this, "Booking request sent!", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, BookingForm::class.java))
             finish()
         }

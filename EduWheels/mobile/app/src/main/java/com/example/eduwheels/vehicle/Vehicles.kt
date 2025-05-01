@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.eduwheels.R
 import com.example.eduwheels.adapter.VehicleAdapter
 import com.example.eduwheels.api.RetrofitService
+import com.example.eduwheels.base.BaseActivity
 import com.example.eduwheels.models.Vehicle
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -17,14 +18,14 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class Vehicles : Activity() {
+class Vehicles : BaseActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var retrofitService: RetrofitService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_vehicles)
+        setContentLayout(R.layout.activity_vehicles)
 
         recyclerView = findViewById(R.id.vehicleRecycler)
         recyclerView.layoutManager = LinearLayoutManager(this)

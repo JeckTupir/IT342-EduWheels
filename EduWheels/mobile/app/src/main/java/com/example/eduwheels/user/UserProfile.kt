@@ -1,11 +1,11 @@
 package com.example.eduwheels.user
 
-import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import com.example.eduwheels.R
 import com.example.eduwheels.api.RetrofitService
+import com.example.eduwheels.base.BaseActivity
 import com.example.eduwheels.models.User
 import com.example.eduwheels.util.SessionManager
 import okhttp3.OkHttpClient
@@ -16,14 +16,14 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 
-class UserProfile : Activity() {
+class UserProfile : BaseActivity() {
 
     private lateinit var retrofitService: RetrofitService
     private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_user_profile)
+        setContentLayout(R.layout.activity_user_profile)
 
         val firstNameField = findViewById<EditText>(R.id.firstNameInput)
         val lastNameField = findViewById<EditText>(R.id.lastNameInput)
@@ -36,6 +36,13 @@ class UserProfile : Activity() {
 
         sessionManager = SessionManager(this)
         val userId = sessionManager.getUserId()
+
+        if (userId == -1L) {
+            Toast.makeText(this, "No User ID found. Please login again.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
         Log.d("UserProfile", "Session User ID: $userId")
 
         val logging = HttpLoggingInterceptor().apply {
@@ -54,19 +61,21 @@ class UserProfile : Activity() {
             .create(RetrofitService::class.java)
 
         // 🔍 Fetch and display user data
-        retrofitService.getUserById(userId)
+        retrofitService.getUserBySchoolId(userId.toString())
             .enqueue(object : Callback<User> {
                 override fun onResponse(call: Call<User>, response: Response<User>) {
-                    response.body()?.let { user ->
-                        firstNameField.setText(user.firstName)
-                        lastNameField.setText(user.lastName)
-                        schoolIdField.setText(user.schoolid)
-                        usernameField.setText(user.username)
-
-                        // ✅ Clear password fields every load
-                        oldPasswordField.setText("")
-                        newPasswordField.setText("")
-                        reenterPasswordField.setText("")
+                    if (response.isSuccessful) {
+                        response.body()?.let { user ->
+                            firstNameField.setText(user.firstName)
+                            lastNameField.setText(user.lastName)
+                            schoolIdField.setText(user.schoolid)
+                            usernameField.setText(user.username)
+                            oldPasswordField.setText("")
+                            newPasswordField.setText("")
+                            reenterPasswordField.setText("")
+                        }
+                    } else {
+                        Toast.makeText(this@UserProfile, "Failed to load profile", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -81,7 +90,6 @@ class UserProfile : Activity() {
             val newPass = newPasswordField.text.toString().trim()
             val rePass = reenterPasswordField.text.toString().trim()
 
-            // 🔐 Basic validation
             if (oldPass.isBlank() || newPass.isBlank() || rePass.isBlank()) {
                 Toast.makeText(this, "Please complete all password fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -92,8 +100,7 @@ class UserProfile : Activity() {
                 return@setOnClickListener
             }
 
-            // 🔁 Verify old password & update
-            retrofitService.getUserById(userId)
+            retrofitService.getUserBySchoolId(userId.toString())
                 .enqueue(object : Callback<User> {
                     override fun onResponse(call: Call<User>, response: Response<User>) {
                         val user = response.body()
@@ -102,24 +109,24 @@ class UserProfile : Activity() {
                                 firstName = firstNameField.text.toString(),
                                 lastName = lastNameField.text.toString(),
                                 username = usernameField.text.toString(),
-                                password = newPass // ✅ Only password is updated
+                                password = newPass
                             )
 
-                            retrofitService.updateUser(userId, updatedUser)
+                            retrofitService.updateUser(user.userid.toString(), updatedUser)
                                 .enqueue(object : Callback<User> {
                                     override fun onResponse(call: Call<User>, response: Response<User>) {
-                                        Toast.makeText(this@UserProfile, "Profile updated!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@UserProfile, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
                                         oldPasswordField.setText("")
                                         newPasswordField.setText("")
                                         reenterPasswordField.setText("")
                                     }
 
                                     override fun onFailure(call: Call<User>, t: Throwable) {
-                                        Toast.makeText(this@UserProfile, "Update failed", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@UserProfile, "Failed to update profile", Toast.LENGTH_SHORT).show()
                                     }
                                 })
                         } else {
-                            Toast.makeText(this@UserProfile, "Old password is incorrect", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@UserProfile, "Old password incorrect", Toast.LENGTH_SHORT).show()
                         }
                     }
 

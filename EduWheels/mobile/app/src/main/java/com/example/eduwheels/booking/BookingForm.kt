@@ -4,11 +4,12 @@ import android.app.Activity
 import android.os.Bundle
 import android.widget.*
 import com.example.eduwheels.R
+import com.example.eduwheels.base.BaseActivity
 
-class BookingForm : Activity() {
+class BookingForm : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_booking_form)
+        setContentLayout(R.layout.activity_booking_form)
 
         val pickUpLocationInput = findViewById<EditText>(R.id.pickUpLocationInput)
         val pickUpTimeInput = findViewById<EditText>(R.id.pickUpTimeInput)
