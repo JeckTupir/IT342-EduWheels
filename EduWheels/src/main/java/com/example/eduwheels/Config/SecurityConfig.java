@@ -72,8 +72,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/users/login",
                                 "/users/signup",
-                                "/oauth2/**",
+                                "/oauth2/**",      // For OAuth2 flow
+                                "/login",
                                 "/complete-profile",
+                                "/users/**",       // Consider if this is too broad
+                                "/api/vehicles/**", // Allow access to vehicle info
+                                "/api/bookings/**", // *** CORRECTED PATH *** Allow access to booking endpoints
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
