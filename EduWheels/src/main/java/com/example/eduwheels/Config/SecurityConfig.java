@@ -69,18 +69,16 @@ public class SecurityConfig {
                 )
                 // Define authorization rules
                 .authorizeHttpRequests(authz -> authz
-                        // Permit access to public endpoints without authentication
                         .requestMatchers(
                                 "/users/login",
                                 "/users/signup",
-                                "/oauth2/**",      // For OAuth2 flow
-                                "/login",          // Default Spring Security login page path if needed, or custom
+                                "/oauth2/**",
                                 "/complete-profile",
-                                "/users/**",       // Consider if this is too broad
-                                "/api/vehicles/**", // Allow access to vehicle info
-                                "/api/bookings/**" // *** CORRECTED PATH *** Allow access to booking endpoints
-                        ).permitAll()
-                        // IMPORTANT: Explicitly permit OPTIONS requests for CORS preflight checks
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**").permitAll()
+
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Any other request must be authenticated
                         .anyRequest().authenticated()
