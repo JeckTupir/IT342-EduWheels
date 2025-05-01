@@ -64,7 +64,8 @@ export default function Signup() {
             firstName: formData.firstName,
             lastName: formData.lastName,
             username: formData.username,
-            password: formData.password
+            password: formData.password,
+            role: "User"
         };
 
         setLoading(true);
@@ -74,7 +75,7 @@ export default function Signup() {
             if (response.status === 201) {
                 setSuccess("Sign Up Successful! Redirecting to login...");
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    window.location.href = '/eduwheels/login';
                 }, 2000);
             } else {
                 setError(`Unexpected success status: ${response.status}`);
