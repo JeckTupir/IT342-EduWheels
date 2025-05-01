@@ -5,27 +5,20 @@ import eduwheelsLogo from '/assets/eduwheels-logo.png'; // adjust if necessary
 import './LandingPage/LandingPage.css'; // reusing your styles
 
 export default function LandingHeader() {
-    const handleSignUpClick = () => {
-        window.location.href = '/signup';
-    };
-
-    const handleLoginClick = () => {
-        window.location.href = '/login';
-    };
 
     return (
         <Box className="top-bar-modern">
             <Link to="/" style={{ textDecoration: 'none' }}>
-                <Avatar src={eduwheelsLogo} className="logo-modern" />
+                <img src={eduwheelsLogo}  className="logo-modern" alt="EduWheels Logo"/>
             </Link>
             <Box className="nav-links-modern">
                 <Button color="inherit" component={Link} to="/about">About Us</Button>
                 <Button color="inherit" component={Link} to="/booking">Book Now</Button>
                 <Button color="inherit" component={Link} to="/contact">Contact Us</Button>
-                <Button variant="outlined" color="primary" onClick={handleSignUpClick}>
+                <Button variant="outlined" color="primary" component={Link} to="/signup">
                     Sign Up
                 </Button>
-                <Button variant="contained" color="primary" onClick={handleLoginClick}>
+                <Button variant="contained" color="primary" component={Link} to="/login">
                     Login
                 </Button>
             </Box>

@@ -20,8 +20,8 @@
 }
 
 .logo-modern {
-    width: 1000px;
-    height: 1000px;
+    width: 80px;
+    height: auto;
 }
 
 .nav-links-modern {
@@ -92,11 +92,11 @@
 
 .feature-icon {
     margin-bottom: 1rem;
-    color: #007bff; /* Keep or change.  Original was #007bff */
+    color: #5A4040; /* Keep or change.  Original was #007bff */
 }
 
 .feature-item h6 {
-    color: #2c3e50;
+    color: #5A4040;
     margin-bottom: 0.5rem;
     font-size: 1.2rem;
     font-weight: 600;
@@ -134,6 +134,7 @@
     margin-top: 0;
     font-size: 1.1rem;
     line-height: 1.7;
+    padding-bottom: 20px;
 }
 
 .about-text-modern .button {
@@ -142,9 +143,8 @@
 }
 
 .about-image-modern {
-    width: 40%;
+    width: 25%;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Responsive Adjustments (Basic Example) --- */
