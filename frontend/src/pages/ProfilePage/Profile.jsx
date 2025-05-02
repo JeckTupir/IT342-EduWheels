@@ -9,15 +9,23 @@ import {
     CircularProgress,
     Grid,
     Paper,
-    Divider, // Import Divider
-    TableContainer, // Import Table components
+    Divider,
+    TableContainer,
     Table,
     TableHead,
     TableBody,
     TableRow,
     TableCell,
+    Modal, // <-- Import Modal
+    Dialog, // <-- More structured modal using Dialog
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Rating, // <-- Optional: Import Rating for star reviews
+    Snackbar // <-- For brief success/error messages after review submit
 } from '@mui/material';
-import { AccountCircle, Email, School, Person, ArrowBack, CalendarToday } from '@mui/icons-material'; // Import CalendarToday
+import { AccountCircle, Email, School, Person, ArrowBack, CalendarToday, RateReview } from '@mui/icons-material'; // Import CalendarToday, RateReview
 import './Profile.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +34,7 @@ const API_BASE_URL = "http://localhost:8080";
 
 // Helper to format raw digits "123456789" → "12-3456-789"
 function formatSchoolId(value = "") {
+    // ... (keep existing function)
     const digits = value.replace(/\D/g, '').slice(0, 9);
     const part1 = digits.slice(0, 2);
     const part2 = digits.slice(2, 6);
@@ -46,13 +55,24 @@ export default function Profile() {
     const [updateLoading, setUpdateLoading] = useState(false);
     const [updateSuccess, setUpdateSuccess] = useState(null);
 
-    // --- NEW STATE FOR BOOKING HISTORY ---
     const [userBookings, setUserBookings] = useState([]);
     const [userBookingsLoading, setUserBookingsLoading] = useState(true);
     const [userBookingsError, setUserBookingsError] = useState(null);
+
+    // --- NEW STATE FOR REVIEW MODAL ---
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [reviewTargetBooking, setReviewTargetBooking] = useState(null); // Store the whole booking object
+    const [reviewText, setReviewText] = useState('');
+    // const [reviewRating, setReviewRating] = useState(0); // Optional: For star rating
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewError, setReviewError] = useState(null);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('info'); // 'success', 'error', 'warning', 'info'
     // --- END NEW STATE ---
 
-
+    // --- Effects (fetchUserData, fetchUserBookings) ---
+    // ... (keep existing useEffect hooks)
     // --- Effect to fetch user profile data ---
     useEffect(() => {
         const fetchUserData = async () => {
@@ -132,7 +152,7 @@ export default function Profile() {
                     const response = await axios.get(`${API_BASE_URL}/api/bookings/my`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    setUserBookings(response.data);
+                    setUserBookings(response.data); // Assume this returns an array of booking objects
                     setUserBookingsLoading(false);
                 } catch (err) {
                     console.error("Error fetching user bookings:", err.response || err);
@@ -148,6 +168,8 @@ export default function Profile() {
     // --- END NEW Effect ---
 
 
+    // --- Profile Edit Handlers (handleBackClick, handleEditClick, etc.) ---
+    // ... (keep existing handlers)
     const handleBackClick = () => navigate(-1);
     const handleEditClick = () => setIsEditing(true);
     const handleCancelClick = () => {
@@ -225,8 +247,99 @@ export default function Profile() {
         }
     };
 
-    // Render loading state for initial profile fetch
+
+    // --- NEW Review Modal Handlers ---
+    const handleOpenReviewModal = (booking) => {
+        setReviewTargetBooking(booking);
+        setReviewText(''); // Reset fields when opening
+        // setReviewRating(0); // Reset rating
+        setReviewError(null); // Clear previous errors
+        setIsReviewModalOpen(true);
+    };
+
+    const handleCloseReviewModal = () => {
+        setIsReviewModalOpen(false);
+        setReviewTargetBooking(null); // Clear target
+    };
+
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbarOpen(false);
+    };
+
+    const handleReviewSubmit = async () => {
+        if (!reviewTargetBooking || !reviewText.trim()) { // Basic validation
+            setReviewError("Review text cannot be empty.");
+            return;
+        }
+        setReviewSubmitting(true);
+        setReviewError(null);
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            setReviewError("Authentication token missing. Please log in again.");
+            setReviewSubmitting(false);
+            return;
+        }
+
+        // Construct the payload according to ReportController expectations
+        const payload = {
+            // Add other ReportEntity fields as needed (e.g., rating)
+            // description: reviewText, // Assuming your ReportEntity has a 'description' field for the text
+            // comment: reviewText // Or maybe 'comment'? Adjust field name as needed!
+            reviewText: reviewText, // <<<--- ADJUST THIS FIELD NAME based on your ReportEntity.java
+            // rating: reviewRating, // Optional: Add rating if you use it
+            booking: {
+                bookingID: reviewTargetBooking.bookingID // Send the booking ID within a booking object
+            }
+            // The backend will fetch the full booking, set the date, etc.
+        };
+
+        try {
+            await axios.post(`${API_BASE_URL}/api/reviews`, payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setSnackbarMessage('Review submitted successfully!');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+            handleCloseReviewModal();
+
+            // OPTIONAL: Update the UI to reflect the review submission
+            // This is tricky without knowing if a review exists. The simplest way
+            // is to just close the modal. A better way requires the backend
+            // to indicate if a review exists for a booking.
+            // Example: Refetch bookings or update the specific booking's state locally
+            // setUserBookings(prevBookings =>
+            //     prevBookings.map(b =>
+            //         b.bookingId === reviewTargetBooking.bookingId
+            //             ? { ...b, hasReview: true } // Needs 'hasReview' flag from backend
+            //             : b
+            //     )
+            // );
+
+        } catch (err) {
+            console.error("Review submission failed:", err.response || err);
+            const backendError = err.response?.data?.message || err.response?.data?.error;
+            const errorMessage = backendError || err.message || "Failed to submit review.";
+            // Display error inside the modal
+            setReviewError(`Error: ${errorMessage}`);
+            // Or use the snackbar for errors too
+            // setSnackbarMessage(`Error: ${errorMessage}`);
+            // setSnackbarSeverity('error');
+            // setSnackbarOpen(true);
+        } finally {
+            setReviewSubmitting(false);
+        }
+    };
+    // --- END Review Modal Handlers ---
+
+
+    // --- Render Logic ---
     if (loading) {
+        // ... (keep existing loading render)
         return (
             <div className="root">
                 <Paper className="profile-paper" sx={{ p: 3, textAlign: 'center' }}>
@@ -237,8 +350,8 @@ export default function Profile() {
         );
     }
 
-    // Render error state for initial profile fetch
-    if (error && !userData) { // Only show main error if no user data loaded
+    if (error && !userData) {
+        // ... (keep existing error render)
         return (
             <div className="root">
                 <Paper className="profile-paper" sx={{ p: 3 }}>
@@ -251,10 +364,11 @@ export default function Profile() {
         );
     }
 
-    // Main Render (Profile and Booking History)
     return (
         <div className="root">
             <Paper className="profile-paper">
+                {/* Back Button, Avatar, Name, Edit/View Logic */}
+                {/* ... (keep existing profile section) ... */}
                 {/* Back Button */}
                 <Button
                     startIcon={<ArrowBack />}
@@ -283,6 +397,7 @@ export default function Profile() {
                 {isEditing ? (
                     // --- EDITING FORM ---
                     <Box component="form" onSubmit={handleSubmit} sx={{ px: 3 }}>
+                        {/* ... Keep TextFields ... */}
                         <TextField
                             fullWidth
                             margin="normal"
@@ -321,7 +436,7 @@ export default function Profile() {
                             label="School ID (xx-xxxx-xxx)"
                             name="schoolId"
                             value={editedData.schoolId}
-                            onChange={handleInputChange}
+                            disabled
                             placeholder="e.g., 12-3456-789" // Add placeholder for format
                         />
 
@@ -335,6 +450,7 @@ export default function Profile() {
                 ) : (
                     // --- VIEWING PROFILE DETAILS ---
                     <Grid container direction="column" spacing={1} sx={{ px: 3 }}>
+                        {/* ... Keep Grid items ... */}
                         <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
                             <Person sx={{ mr: 1 }} />
                             <Typography>Username: {userData?.username}</Typography> {/* Use optional chaining */}
@@ -357,15 +473,15 @@ export default function Profile() {
                     </Grid>
                 )}
 
+
                 {/* --- BOOKING HISTORY SECTION --- */}
-                <Divider sx={{ my: 4 }} /> {/* Add a divider */}
+                <Divider sx={{ my: 4 }} />
 
                 <Box sx={{ px: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <CalendarToday sx={{ mr: 1 }} /> {/* Icon for booking history */}
+                        <CalendarToday sx={{ mr: 1 }} />
                         <Typography variant="h5">Booking History</Typography>
                     </Box>
-
 
                     {userBookingsLoading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -377,7 +493,7 @@ export default function Profile() {
                     ) : userBookings.length === 0 ? (
                         <Typography variant="body1" sx={{ mt: 2 }}>No booking history found.</Typography>
                     ) : (
-                        <TableContainer component={Paper} variant="outlined"> {/* Use Paper with outline */}
+                        <TableContainer component={Paper} variant="outlined">
                             <Table size="small" aria-label="user bookings table">
                                 <TableHead>
                                     <TableRow>
@@ -388,33 +504,56 @@ export default function Profile() {
                                         <TableCell>Req Date</TableCell>
                                         <TableCell>Start Date</TableCell>
                                         <TableCell>End Date</TableCell>
-                                        <TableCell align="right">Pass.</TableCell> {/* Abbreviated */}
+                                        <TableCell align="right">Pass.</TableCell>
                                         <TableCell>Status</TableCell>
-                                        {/* Add Accepted/Completed Date columns if you want to show them */}
-                                        {/* <TableCell>Accepted</TableCell> */}
-                                        {/* <TableCell>Completed</TableCell> */}
+                                        <TableCell>Actions</TableCell> {/* <-- NEW COLUMN HEADER */}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {userBookings.map((booking) => (
                                         <TableRow
-                                            key={booking.bookingId}
+                                            key={booking.bookingId} // Ensure bookingId is the correct key
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell component="th" scope="row">{booking.bookingId}</TableCell>
-                                            {/* Access nested vehicle plate safely */}
+                                            <TableCell component="th" scope="row">{booking.bookingID}</TableCell>
                                             <TableCell>{booking.vehicle?.plateNumber || 'N/A'}</TableCell>
                                             <TableCell>{booking.pickUp || 'N/A'}</TableCell>
                                             <TableCell>{booking.dropOff || 'N/A'}</TableCell>
-                                            {/* Format dates */}
                                             <TableCell>{booking.requestDate ? new Date(booking.requestDate).toLocaleDateString() : 'N/A'}</TableCell>
                                             <TableCell>{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</TableCell>
                                             <TableCell>{booking.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}</TableCell>
                                             <TableCell align="right">{booking.numberOfPassengers}</TableCell>
-                                            <TableCell>{booking.status}</TableCell>
-                                            {/* Display Accepted/Completed dates if included in backend response */}
-                                            {/* <TableCell>{booking.acceptedAt ? new Date(booking.acceptedAt).toLocaleDateString() : 'N/A'}</TableCell> */}
-                                            {/* <TableCell>{booking.completedAt ? new Date(booking.completedAt).toLocaleDateString() : 'N/A'}</TableCell> */}
+                                            <TableCell>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        color: booking.status === 'Done' ? 'success.main' : booking.status === 'Cancelled' ? 'error.main' : 'text.secondary'
+                                                    }}
+                                                >
+                                                    {booking.status}
+                                                </Typography>
+                                            </TableCell>
+                                            {/* --- NEW ACTION CELL --- */}
+                                            <TableCell>
+                                                {/* --- CONDITIONALLY RENDER REVIEW BUTTON --- */}
+                                                {/* Check if status is 'Done'. You might need to adjust the exact string 'Done' based on your backend enum/values */}
+                                                {/* TODO: Add a check here if the booking already has a review, if that data is available */}
+                                                {booking.status === 'Done' && (
+                                                    <Button
+                                                        variant="outlined"
+                                                        size="small"
+                                                        startIcon={<RateReview />}
+                                                        onClick={() => handleOpenReviewModal(booking)}
+                                                        // disabled={booking.hasReview} // Optional: Disable if already reviewed (needs 'hasReview' flag from backend)
+                                                    >
+                                                        Review
+                                                        {/* {booking.hasReview ? 'Reviewed' : 'Review'} */}
+                                                    </Button>
+                                                )}
+                                                {/* Add other potential actions here */}
+                                            </TableCell>
+                                            {/* --- END NEW ACTION CELL --- */}
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -425,6 +564,76 @@ export default function Profile() {
                 {/* --- END BOOKING HISTORY SECTION --- */}
 
             </Paper>
+
+            {/* --- REVIEW MODAL DIALOG --- */}
+            <Dialog open={isReviewModalOpen} onClose={handleCloseReviewModal} maxWidth="sm" fullWidth>
+                <DialogTitle>Leave a Review</DialogTitle>
+                <DialogContent>
+                    {reviewTargetBooking && ( // Ensure booking data is loaded before showing details
+                        <DialogContentText sx={{ mb: 2 }}>
+                            Reviewing booking ID: {reviewTargetBooking.bookingID} for vehicle {reviewTargetBooking.vehicle?.plateNumber || 'N/A'}.
+                        </DialogContentText>
+                    )}
+
+                    {/* Optional: Rating Component */}
+                    {/* <Box sx={{ mb: 2 }}>
+                        <Typography component="legend">Rating</Typography>
+                        <Rating
+                            name="booking-rating"
+                            value={reviewRating}
+                            onChange={(event, newValue) => {
+                                setReviewRating(newValue);
+                            }}
+                        />
+                    </Box> */}
+
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="review-text"
+                        label="Your Review / Comments"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        multiline
+                        rows={4}
+                        value={reviewText}
+                        onChange={(e) => setReviewText(e.target.value)}
+                        error={!!reviewError && !reviewText.trim()} // Show error if reviewError exists and text is empty
+                        helperText={!reviewText.trim() && reviewError ? reviewError : ''} // Show specific validation message
+                    />
+                    {/* Show general submission errors here */}
+                    {reviewError && reviewText.trim() && (
+                        <Alert severity="error" sx={{ mt: 2 }}>{reviewError}</Alert>
+                    )}
+
+                </DialogContent>
+                <DialogActions sx={{ p: 2 }}>
+                    <Button onClick={handleCloseReviewModal} color="secondary">Cancel</Button>
+                    <Button
+                        onClick={handleReviewSubmit}
+                        variant="contained"
+                        disabled={reviewSubmitting || !reviewText.trim()} // Disable if submitting or text is empty
+                    >
+                        {reviewSubmitting ? <CircularProgress size={24} /> : 'Submit Review'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            {/* --- END REVIEW MODAL --- */}
+
+            {/* --- Snackbar for feedback --- */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000} // Hide after 4 seconds
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }} variant="filled">
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+            {/* --- End Snackbar --- */}
+
         </div>
     );
 }

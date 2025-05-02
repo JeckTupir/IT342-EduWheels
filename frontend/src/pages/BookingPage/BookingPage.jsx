@@ -139,7 +139,7 @@ export default function BookingPage() {
             startDate: new Date().toISOString(), // Keeping as is for now, potentially map to tblbooking.start_date
             endDate: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(), // Keeping as is, potentially map to tblbooking.end_date
 
-            status: "PENDING", // Initial status
+            status: "Pending", // Initial status
             numberOfPassengers: passengers
         };
 

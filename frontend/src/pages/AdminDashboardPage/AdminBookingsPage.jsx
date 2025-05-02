@@ -1,284 +1,331 @@
-// src/pages/Admin/AdminBookingsPage.jsx
-import React, { useEffect, useState, useCallback } from 'react'; // Import useCallback
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box,
     Typography,
-    CircularProgress,
-    Alert,
-    AlertTitle, // Import AlertTitle
-    Paper,
-    TableContainer,
     Table,
-    TableHead,
     TableBody,
-    TableRow,
     TableCell,
-    Select,
-    MenuItem,
-    FormControl,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
     IconButton,
-    Snackbar,
-    Dialog, // Import Dialog components for confirmation
+    Button,
+    Dialog,
     DialogTitle,
     DialogContent,
-    DialogContentText,
     DialogActions,
-    Button,
-    TextField, // Import TextField for search
-    InputAdornment, // Import InputAdornment for search icon
-    TablePagination, // Import TablePagination
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    CircularProgress,
+    Alert,
+    AlertTitle,
+    DialogContentText,
+    styled,
+    TablePagination,
+    InputAdornment,
 } from '@mui/material';
-import MuiAlert from '@mui/material/Alert';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit'; // Keep Edit Icon import
-import SearchIcon from '@mui/icons-material/Search'; // Import Search Icon
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'; // Import Error Icon
+import {
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    Add as AddIcon,
+    Search as SearchIcon,
+    ErrorOutline as ErrorOutlineIcon,
+} from '@mui/icons-material';
+import { format } from 'date-fns';
 
-// Helper function for Snackbar alerts
-const AlertSnackbar = React.forwardRef(function Alert(props, ref) {
-    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
+const getAuthToken = () => {
+    return localStorage.getItem('token'); // Replace with your actual token retrieval
+};
 
-const API_BASE_URL = 'http://localhost:8080'; // Define base URL
+const API_BASE_URL = 'http://localhost:8080';
+const BOOKINGS_API = `${API_BASE_URL}/api/bookings`;
+const USERS_API = `${API_BASE_URL}/users`; // Assuming you have a users endpoint
+const VEHICLES_API = `${API_BASE_URL}/api/vehicles`; // Assuming you have a vehicles endpoint
+
+// Styled Components
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+    marginTop: theme.spacing(2),
+    boxShadow: theme.shadows[2],
+    borderRadius: theme.shape.borderRadius,
+}));
+
+// Delete Confirmation Dialog
+const DeleteBookingDialog = ({ open, onClose, onConfirm, bookingId }) => (
+    <Dialog open={open} onClose={onClose}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+                Are you sure you want to delete booking ID "{bookingId}"? This action cannot be undone.
+            </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={onClose} color="secondary">Cancel</Button>
+            <Button onClick={onConfirm} color="error" variant="contained">Delete</Button>
+        </DialogActions>
+    </Dialog>
+);
 
 export default function AdminBookingsPage() {
     const [bookings, setBookings] = useState([]);
-    const [loading, setLoading] = useState(true); // For initial fetch
-    const [mutationLoading, setMutationLoading] = useState(false); // For status updates/deletes
-    const [error, setError] = useState(null); // For fetch errors
-    const [statusUpdateMessage, setStatusUpdateMessage] = useState({ open: false, text: '', severity: 'success' });
-
-    // --- State for Delete Confirmation Dialog ---
+    const [openDialog, setOpenDialog] = useState(false);
+    const [dialogType, setDialogType] = useState('create');
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [bookingFormData, setBookingFormData] = useState({
+        startDate: '',
+        endDate: '',
+        numberOfPassengers: '',
+        status: 'Pending',
+        userid: '',
+        vehicleId: '',
+        pickUp: '',
+        dropOff: '',
+    });
+    const [loading, setLoading] = useState(true);
+    const [mutationLoading, setMutationLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [dialogError, setDialogError] = useState('');
     const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
-    const [bookingToDelete, setBookingToDelete] = useState(null); // Store booking ID to delete
-    // --- End Delete Confirmation Dialog State ---
-
-    // --- State for Filtering and Pagination ---
     const [searchTerm, setSearchTerm] = useState('');
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10); // Default rows per page
-    // --- End Filtering and Pagination State ---
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [users, setUsers] = useState([]);
+    const [vehicles, setVehicles] = useState([]);
 
-
-    // Fetch bookings data from the backend (using useCallback for stability)
-    const fetchBookings = useCallback(async () => {
-        setLoading(true);
-        setError(null); // Clear previous fetch errors
-        const token = localStorage.getItem('token');
-        if (!token) {
-            setError("Authentication token not found. Please log in.");
-            setLoading(false);
-            // Optionally redirect to login if token is missing
-            // navigate('/login'); // Requires useNavigate hook
-            return;
-        }
-
+    // Fetch Users and Vehicles for dropdowns
+    const fetchUsersAndVehicles = useCallback(async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/bookings`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const token = getAuthToken();
+            const usersResponse = await fetch(USERS_API, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
             });
-            setBookings(response.data);
-            setLoading(false);
-        } catch (err) {
-            console.error("Error fetching bookings:", err.response || err);
-            const errorMessage = err.response?.data?.message || err.message || "Failed to load bookings. Please try again.";
-            setError(errorMessage);
-            setLoading(false);
-        }
-    }, []); // No dependencies, so this function is created once
-
-    // Effect to run the fetch operation on component mount
-    useEffect(() => {
-        fetchBookings();
-    }, [fetchBookings]); // Dependency array includes fetchBookings
-
-
-    // Handle status change from the dropdown
-    const handleStatusChange = async (bookingID, newStatus) => {
-        // Prevent multiple mutations at once
-        if (mutationLoading) return;
-
-        // Find the booking in the current state to get its existing data
-        const bookingToUpdate = bookings.find(booking => booking.bookingID === bookingID);
-
-        if (!bookingToUpdate) {
-            console.error(`Booking with ID ${bookingID} not found in state.`);
-            setStatusUpdateMessage({ open: true, text: `Error: Booking ${bookingID} not found in list.`, severity: 'error' });
-            return;
-        }
-
-        // Prevent unnecessary update if status is the same
-        if (bookingToUpdate.status === newStatus) {
-            return;
-        }
-
-        setMutationLoading(true); // Start mutation loading
-
-        // Construct the data payload for the PUT request
-        // Ensure you send the necessary fields that your backend update endpoint expects.
-        // Based on your BookingService.updateBooking, it expects a full BookingEntity body.
-        // Make sure to include the user and vehicle IDs if your backend needs them to link the booking.
-        const updatedBookingData = {
-            // Copy existing fields
-            bookingID: bookingToUpdate.bookingID, // Include ID in body if backend expects it
-            startDate: bookingToUpdate.startDate,
-            endDate: bookingToUpdate.endDate,
-            numberOfPassengers: bookingToUpdate.numberOfPassengers,
-            pickUp: bookingToUpdate.pickUp,
-            dropOff: bookingToUpdate.dropOff,
-            requestDate: bookingToUpdate.requestDate,
-            acceptedAt: bookingToUpdate.acceptedAt, // Include existing timestamps
-            completedAt: bookingToUpdate.completedAt, // Include existing timestamps
-
-            // Include User and Vehicle IDs if backend requires them in the PUT body
-            // Adjust field names based on your BookingEntity structure (e.g., userId, vehicleId or nested objects)
-            userId: bookingToUpdate.user?.userId, // Assuming user object has userId
-            vehicleId: bookingToUpdate.vehicle?.vehicleId, // Assuming vehicle object has vehicleId
-            // If backend expects nested objects:
-            // user: bookingToUpdate.user ? { userId: bookingToUpdate.user.userId } : null,
-            // vehicle: bookingToUpdate.vehicle ? { vehicleId: bookingToUpdate.vehicle.vehicleId } : null,
-
-
-            // --- The field being updated ---
-            status: newStatus,
-        };
-
-
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setStatusUpdateMessage({ open: true, text: "Authentication token missing.", severity: 'error' });
-                setMutationLoading(false);
-                return;
+            if (usersResponse.ok) {
+                const usersData = await usersResponse.json();
+                setUsers(usersData || []);
+            } else {
+                console.error("Failed to fetch users:", usersResponse.status);
             }
 
-            const response = await axios.put(`${API_BASE_URL}/api/bookings/${bookingID}`, updatedBookingData, {
+            const vehiclesResponse = await fetch(VEHICLES_API, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            });
+            if (vehiclesResponse.ok) {
+                const vehiclesData = await vehiclesResponse.json();
+                setVehicles(vehiclesData || []);
+            } else {
+                console.error("Failed to fetch vehicles:", vehiclesResponse.status);
+            }
+        } catch (error) {
+            console.error("Error fetching users and vehicles:", error);
+        }
+    }, []);
+
+    const fetchBookings = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const token = getAuthToken();
+            const response = await fetch(BOOKINGS_API, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            setBookings(data || []);
+        } catch (e) {
+            setError(e.message || "Failed to fetch bookings.");
+            setBookings([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchBookings();
+        fetchUsersAndVehicles();
+    }, [fetchBookings, fetchUsersAndVehicles]);
+
+    const handleOpenCreateDialog = () => {
+        setSelectedBooking(null);
+        setBookingFormData({
+            startDate: '',
+            endDate: '',
+            numberOfPassengers: '',
+            status: 'Pending',
+            userId: '',
+            vehicleId: '',
+            pickUp: '',
+            dropOff: '',
+        });
+        setDialogType('create');
+        setDialogError('');
+        setOpenDialog(true);
+    };
+
+    const handleOpenEditDialog = (booking) => {
+        setSelectedBooking(booking);
+        setBookingFormData({
+            startDate: format(new Date(booking.startDate), 'yyyy-MM-dd\'T\'HH:mm'),
+            endDate: format(new Date(booking.endDate), 'yyyy-MM-dd\'T\'HH:mm'),
+            numberOfPassengers: booking.numberOfPassengers || '',
+            status: booking.status || 'Pending',
+            userId: booking.user?.userid || '',
+            vehicleId: booking.vehicle?.vehicleId || '',
+            pickUp: booking.pickUp || '',
+            dropOff: booking.dropOff || '',
+        });
+        setDialogType('edit');
+        setDialogError('');
+        setOpenDialog(true);
+    };
+
+    const handleCloseDialog = () => {
+        if (mutationLoading) return;
+        setOpenDialog(false);
+    };
+
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setBookingFormData((prevData) => ({ ...prevData, [name]: value }));
+    };
+
+    const handleSaveBooking = async () => {
+        setMutationLoading(true);
+        setDialogError('');
+        const token = getAuthToken();
+        if (!token) {
+            setDialogError("Authentication token not found. Please log in.");
+            setMutationLoading(false);
+            return;
+        }
+
+        const payload = {
+            startDate: bookingFormData.startDate,
+            endDate: bookingFormData.endDate,
+            numberOfPassengers: parseInt(bookingFormData.numberOfPassengers),
+            status: bookingFormData.status,
+            userId: parseInt(bookingFormData.userId),
+            vehicleId: parseInt(bookingFormData.vehicleId),
+            pickUp: bookingFormData.pickUp,
+            dropOff: bookingFormData.dropOff,
+        };
+
+        const isCreating = dialogType === 'create';
+        const url = isCreating ? BOOKINGS_API : `${BOOKINGS_API}/${selectedBooking.bookingID}`;
+        const method = isCreating ? 'POST' : 'PUT';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify(payload),
             });
 
-            // Update the state with the response data (backend should return the updated entity)
-            setBookings(bookings.map(booking =>
-                booking.bookingId === bookingID ? response.data : booking // Replace the old booking object with the updated one
-            ));
-            setStatusUpdateMessage({ open: true, text: `Booking ${bookingID} status updated to ${newStatus}`, severity: 'success' });
+            if (!response.ok) {
+                let errorMsg = `Failed to ${isCreating ? 'create' : 'update'} booking. Status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) { /* Ignore if response is not JSON */ }
+                throw new Error(errorMsg);
+            }
 
-        } catch (err) {
-            console.error("Error updating booking status:", err.response || err);
-            const errorMessage = err.response?.data?.message || err.message || `Failed to update booking ${bookingID} status.`;
-            setStatusUpdateMessage({ open: true, text: errorMessage, severity: 'error' });
-            // Optionally re-fetch all bookings to revert the change on failure
-            // fetchBookings();
+            const resultData = await response.json();
+            fetchBookings(); // Refetch data after successful operation
+            handleCloseDialog();
+        } catch (e) {
+            setDialogError(e.message || `An error occurred while ${isCreating ? 'creating' : 'updating'} the booking.`);
         } finally {
-            setMutationLoading(false); // End mutation loading
+            setMutationLoading(false);
         }
     };
 
-    // --- Handle Delete Confirmation Dialog ---
     const handleOpenDeleteConfirm = (booking) => {
-        setBookingToDelete(booking); // Store the booking object for name/ID
+        setSelectedBooking(booking);
         setOpenDeleteConfirm(true);
     };
 
     const handleCloseDeleteConfirm = () => {
         setOpenDeleteConfirm(false);
-        setBookingToDelete(null); // Clear the stored booking
+        setSelectedBooking(null);
     };
 
-    // --- Handle Booking Deletion (after confirmation) ---
     const handleDeleteBooking = async () => {
-        if (!bookingToDelete || mutationLoading) return; // Prevent deletion if no booking selected or already mutating
+        if (!selectedBooking) return;
+        const idToDelete = selectedBooking.bookingID;
 
-        const idToDelete = bookingToDelete.bookingID;
-
-        setMutationLoading(true); // Start mutation loading
-        setStatusUpdateMessage({ open: false, text: '', severity: 'success' }); // Clear previous messages
-
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setStatusUpdateMessage({ open: true, text: "Authentication token missing.", severity: 'error' });
-                setMutationLoading(false);
-                handleCloseDeleteConfirm();
-                return;
-            }
-
-            // Send DELETE request to the backend
-            await axios.delete(`${API_BASE_URL}/api/bookings/${idToDelete}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            // Remove the deleted booking from the state to update the UI
-            setBookings(bookings.filter(booking => booking.bookingId !== idToDelete));
-
-            setStatusUpdateMessage({ open: true, text: `Booking ${idToDelete} deleted successfully.`, severity: 'success' });
-            handleCloseDeleteConfirm(); // Close dialog on success
-
-        } catch (err) {
-            console.error("Error deleting booking:", err.response || err);
-            const errorMessage = err.response?.data?.message || err.message || `Failed to delete booking ${idToDelete}.`;
-            setStatusUpdateMessage({ open: true, text: errorMessage, severity: 'error' });
-            handleCloseDeleteConfirm(); // Close dialog even on error
-        } finally {
-            setMutationLoading(false); // End mutation loading
-        }
-    };
-    // --- End Handle Booking Deletion ---
-
-
-    const handleCloseSnackbar = (event, reason) => {
-        if (reason === 'clickaway') {
+        setMutationLoading(true);
+        setError(null);
+        const token = getAuthToken();
+        if (!token) {
+            setError("Authentication token not found.");
+            setMutationLoading(false);
+            handleCloseDeleteConfirm();
             return;
         }
-        setStatusUpdateMessage({ ...statusUpdateMessage, open: false });
+
+        try {
+            const response = await fetch(`${BOOKINGS_API}/${idToDelete}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok && response.status !== 204) {
+                let errorMsg = `Failed to delete booking. Status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) { /* Ignore if error response is not JSON */ }
+                throw new Error(errorMsg);
+            }
+
+            fetchBookings(); // Refetch data after successful deletion
+            handleCloseDeleteConfirm();
+        } catch (e) {
+            setError(e.message || "An error occurred while deleting the booking.");
+            handleCloseDeleteConfirm();
+        } finally {
+            setMutationLoading(false);
+        }
     };
 
-    // --- Pagination Handlers ---
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0); // Reset page to 0 when rows per page changes
+        setPage(0);
     };
-    // --- End Pagination Handlers ---
 
-    // --- Filtering Logic ---
-    const filteredBookings = bookings.filter((booking) => {
-        const searchLower = searchTerm.toLowerCase();
-        // Check if any relevant field includes the search term
-        return (
-            booking.bookingId?.toString().includes(searchLower) || // Search by ID (as string)
-            booking.user?.email?.toLowerCase().includes(searchLower) || // Search by User Email
-            booking.vehicle?.plateNumber?.toLowerCase().includes(searchLower) || // Search by Vehicle Plate
-            booking.pickUp?.toLowerCase().includes(searchLower) || // Search by Pick Up
-            booking.dropOff?.toLowerCase().includes(searchLower) || // Search by Drop Off
-            booking.status?.toLowerCase().includes(searchLower) // Search by Status
-            // Add other fields if needed (e.g., vehicle name, user name)
-        );
-    });
-    // --- End Filtering Logic ---
+    const filteredBookings = bookings.filter((booking) =>
+        (booking.bookingID?.toString() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.user?.userid?.toString() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.user?.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.vehicle?.vehicleId?.toString() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.vehicle?.plateNumber?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.pickUp?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.dropOff?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (booking.status?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    );
 
-    // Apply pagination to filtered results
-    const paginatedBookings = filteredBookings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const displayedBookings = filteredBookings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-
-    // --- Render ---
     return (
-        <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}> {/* Responsive padding */}
+        <Box sx={{ padding: { xs: 1, sm: 2, md: 3 } }}>
             <Typography variant="h4" gutterBottom>
                 Manage Bookings
             </Typography>
 
-            {/* Display general fetch errors */}
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }} icon={<ErrorOutlineIcon />}>
                     <AlertTitle>Error</AlertTitle>
@@ -286,8 +333,16 @@ export default function AdminBookingsPage() {
                 </Alert>
             )}
 
-            {/* Search Input */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenCreateDialog}
+                    disabled={mutationLoading}
+                >
+                    Add New Booking
+                </Button>
                 <TextField
                     variant="outlined"
                     size="small"
@@ -301,149 +356,266 @@ export default function AdminBookingsPage() {
                             </InputAdornment>
                         ),
                     }}
-                    sx={{ width: { xs: '100%', sm: '300px' } }} // Responsive width
+                    sx={{ width: { xs: '100%', sm: '300px' } }}
                 />
             </Box>
 
-
             {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
-                    <CircularProgress size={60} />
-                    <Typography variant="h6" sx={{ ml: 2 }}>Loading Bookings...</Typography>
+                    <CircularProgress />
                 </Box>
-            ) : bookings.length === 0 && !searchTerm ? ( // Show "No bookings" only if no search term
-                <Typography variant="h6" sx={{ mt: 4 }}>No bookings found.</Typography>
-            ) : filteredBookings.length === 0 && searchTerm ? ( // Show "No results" if searching but no results
-                <Typography variant="h6" sx={{ mt: 4 }}>No results found for "{searchTerm}".</Typography>
             ) : (
-                <Paper> {/* Wrap table in Paper for styling */}
-                    <TableContainer>
-                        <Table sx={{ minWidth: 800 }} aria-label="admin bookings table">
-                            <TableHead>
+                <StyledTableContainer component={Paper}>
+                    <Table aria-label="bookings table">
+                        <TableHead>
+                            <TableRow sx={{ '& th': { fontWeight: 'bold' } }}>
+                                <TableCell>ID</TableCell>
+                                <TableCell>User ID</TableCell>
+                                <TableCell>Vehicle ID</TableCell>
+                                <TableCell>Pick Up</TableCell>
+                                <TableCell>Drop Off</TableCell>
+                                <TableCell>Passengers</TableCell>
+                                <TableCell>Request Date</TableCell>
+                                <TableCell>Start Date</TableCell>
+                                <TableCell>End Date</TableCell>
+                                <TableCell>Status</TableCell>
+                                <TableCell align="right">Actions</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {displayedBookings.length === 0 ? (
                                 <TableRow>
-                                    <TableCell>ID</TableCell>
-                                    <TableCell>User Email</TableCell>
-                                    <TableCell>Vehicle Plate</TableCell>
-                                    <TableCell>Pick Up</TableCell>
-                                    <TableCell>Drop Off</TableCell>
-                                    <TableCell>Request Date</TableCell>
-                                    <TableCell>Start Date</TableCell>
-                                    <TableCell>End Date</TableCell>
-                                    <TableCell align="right">Pass.</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Actions</TableCell>
+                                    <TableCell colSpan={11} align="center" sx={{ py: 4 }}>
+                                        {searchTerm ? 'No bookings match your search.' : 'No bookings found.'}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {paginatedBookings.map((booking) => (
-                                    <TableRow
-                                        key={booking.bookingID}
-                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    >
-                                        <TableCell component="th" scope="row">
-                                            {booking.bookingID}
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.user ? booking.user.email : 'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.vehicle ? booking.vehicle.plateNumber : 'N/A'}
-                                        </TableCell>
+                            ) : (
+                                displayedBookings.map((booking) => (
+                                    <TableRow key={booking.bookingID} hover>
+                                        <TableCell>{booking.bookingID}</TableCell>
+                                        <TableCell>{booking.user?.userid || 'N/A'}</TableCell>
+                                        <TableCell>{booking.vehicle?.vehicleId || 'N/A'}</TableCell>
                                         <TableCell>{booking.pickUp || 'N/A'}</TableCell>
                                         <TableCell>{booking.dropOff || 'N/A'}</TableCell>
+                                        <TableCell>{booking.numberOfPassengers || 'N/A'}</TableCell>
+                                        <TableCell>{booking.requestDate ? format(new Date(booking.requestDate), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
+                                        <TableCell>{booking.startDate ? format(new Date(booking.startDate), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
+                                        <TableCell>{booking.endDate ? format(new Date(booking.endDate), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
                                         <TableCell>
-                                            {booking.requestDate ? new Date(booking.requestDate).toLocaleString() : 'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.startDate ? new Date(booking.startDate).toLocaleString() : 'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {booking.endDate ? new Date(booking.endDate).toLocaleString() : 'N/A'}
-                                        </TableCell>
-                                        <TableCell align="right">{booking.numberOfPassengers}</TableCell>
-                                        <TableCell>
-                                            <FormControl size="small" sx={{ minWidth: 120 }} disabled={mutationLoading}> {/* Disable dropdown during mutation */}
-                                                <Select
-                                                    value={booking.status}
-                                                    onChange={(event) => handleStatusChange(booking.bookingID, event.target.value)}
-                                                    displayEmpty
-                                                    inputProps={{ 'aria-label': `status for booking ${booking.bookingID}` }}
-                                                >
-                                                    {/* Ensure these values match your backend enum names (case-sensitive) */}
-                                                    <MenuItem value="Pending">Pending</MenuItem>
-                                                    <MenuItem value="Accepted">Accepted</MenuItem>
-                                                    <MenuItem value="Going">In Progress</MenuItem>
-                                                    <MenuItem value="Done">Done</MenuItem>
-                                                    <MenuItem value="Canceled">Canceled</MenuItem>
-                                                    <MenuItem value="Rejected">Rejected</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                                {/* Optional Edit Button */}
-                                                {/* <IconButton size="small" onClick={() => console.log('Edit', booking.bookingId)} aria-label={`edit booking ${booking.bookingId}`} disabled={mutationLoading}>
-                                                    <EditIcon fontSize="small" />
-                                                </IconButton> */}
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleOpenDeleteConfirm(booking)} // Open confirmation dialog
-                                                    aria-label={`delete booking ${booking.bookingID}`}
-                                                    color="error"
-                                                    disabled={mutationLoading} // Disable during mutation
-                                                >
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
+                                            <Box
+                                                component="span"
+                                                sx={{
+                                                    bgcolor: booking.status === 'Pending' ? 'info.light' :
+                                                        booking.status === 'Approved' ? 'success.light' :
+                                                            booking.status === 'Rejected' ? 'error.light' :
+                                                                booking.status === 'Going' ? 'warning.light' :
+                                                                    booking.status === 'Done' ? 'grey.300' :
+                                                                        booking.status === 'Accepted' ? 'primary.light' :
+                                                                            booking.status === 'Canceled' ? 'grey.500' : 'default',
+                                                    color: booking.status === 'Pending' ? 'info.dark' :
+                                                        booking.status === 'Approved' ? 'success.dark' :
+                                                            booking.status === 'Rejected' ? 'error.dark' :
+                                                                booking.status === 'Going' ? 'warning.dark' :
+                                                                    booking.status === 'Done' ? 'grey.700' :
+                                                                        booking.status === 'Accepted' ? 'primary.dark' :
+                                                                            booking.status === 'Canceled' ? 'grey.900' : 'default',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 'medium',
+                                                }}
+                                            >
+                                                {booking.status || 'N/A'}
                                             </Box>
                                         </TableCell>
+                                        <TableCell align="right">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleOpenEditDialog(booking)}
+                                                disabled={mutationLoading}
+                                                title="Edit Booking"
+                                                color="primary"
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleOpenDeleteConfirm(booking)}
+                                                disabled={mutationLoading}
+                                                title="Delete Booking"
+                                                color="error"
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    {/* Table Pagination */}
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
                     <TablePagination
                         rowsPerPageOptions={[5, 10, 25]}
                         component="div"
-                        count={filteredBookings.length} // Total number of filtered rows
+                        count={filteredBookings.length}
                         rowsPerPage={rowsPerPage}
                         page={page}
                         onPageChange={handleChangePage}
                         onRowsPerPageChange={handleChangeRowsPerPage}
                     />
-                </Paper>
+                </StyledTableContainer>
             )}
 
-            {/* Delete Confirmation Dialog */}
+            {/* Create/Edit Booking Dialog */}
             <Dialog
-                open={openDeleteConfirm}
-                onClose={handleCloseDeleteConfirm}
-                aria-labelledby="delete-dialog-title"
-                aria-describedby="delete-dialog-description"
+                open={openDialog}
+                onClose={handleCloseDialog}
+                aria-labelledby="form-dialog-title"
+                fullWidth
+                maxWidth="sm"
             >
-                <DialogTitle id="delete-dialog-title">{"Confirm Booking Deletion"}</DialogTitle>
+                <DialogTitle id="form-dialog-title">
+                    {dialogType === 'create' ? 'Create New Booking' : `Edit Booking ID: ${selectedBooking?.bookingID || ''}`}
+                </DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="delete-dialog-description">
-                        Are you sure you want to delete booking {bookingToDelete?.bookingId}? This action cannot be undone.
-                    </DialogContentText>
+                    {dialogError && (
+                        <Alert severity="error" sx={{ mb: 2 }}>{dialogError}</Alert>
+                    )}
+                    <TextField
+                        margin="dense"
+                        id="startDate"
+                        name="startDate"
+                        label="Start Date"
+                        type="datetime-local"
+                        fullWidth
+                        value={bookingFormData.startDate}
+                        onChange={handleInputChange}
+                        required
+                        disabled={mutationLoading}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="endDate"
+                        name="endDate"
+                        label="End Date"
+                        type="datetime-local"
+                        fullWidth
+                        value={bookingFormData.endDate}
+                        onChange={handleInputChange}
+                        required
+                        disabled={mutationLoading}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="numberOfPassengers"
+                        name="numberOfPassengers"
+                        label="Number of Passengers"
+                        type="number"
+                        fullWidth
+                        value={bookingFormData.numberOfPassengers}
+                        onChange={handleInputChange}
+                        required
+                        disabled={mutationLoading}
+                        inputProps={{ min: 1 }}
+                    />
+                    <FormControl fullWidth margin="dense" required disabled={mutationLoading}>
+                        <InputLabel id="status-label">Status</InputLabel>
+                        <Select
+                            labelId="status-label"
+                            id="status"
+                            name="status"
+                            value={bookingFormData.status}
+                            onChange={handleInputChange}
+                            label="Status"
+                        >
+                            <MenuItem value="Pending">Pending</MenuItem>
+                            <MenuItem value="Approved">Approved</MenuItem>
+                            <MenuItem value="Rejected">Rejected</MenuItem>
+                            <MenuItem value="Going">Going</MenuItem>
+                            <MenuItem value="Done">Done</MenuItem>
+                            <MenuItem value="Accepted">Accepted</MenuItem>
+                            <MenuItem value="Canceled">Canceled</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth margin="dense" required disabled={mutationLoading}>
+                        <InputLabel id="user-label">User ID</InputLabel>
+                        <Select
+                            labelId="user-label"
+                            id="userId"
+                            name="userId"
+                            value={bookingFormData.userId}
+                            onChange={handleInputChange}
+                            label="User ID"
+                        >
+                            {users.map((user) => (
+                                <MenuItem key={user.userid} value={user.userid}>
+                                    {user.userid} - {user.email}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth margin="dense" required disabled={mutationLoading}>
+                        <InputLabel id="vehicle-label">Vehicle ID</InputLabel>
+                        <Select
+                            labelId="vehicle-label"
+                            id="vehicleId"
+                            name="vehicleId"
+                            value={bookingFormData.vehicleId}
+                            onChange={handleInputChange}
+                            label="Vehicle ID"
+                        >
+                            {vehicles.map((vehicle) => (
+                                <MenuItem key={vehicle.vehicleId} value={vehicle.vehicleId}>
+                                    {vehicle.vehicleId} - {vehicle.plateNumber} ({vehicle.vehicleName})
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        margin="dense"
+                        id="pickUp"
+                        name="pickUp"
+                        label="Pick Up Location"
+                        type="text"
+                        fullWidth
+                        value={bookingFormData.pickUp}
+                        onChange={handleInputChange}
+                        disabled={mutationLoading}
+                    />
+                    <TextField
+                        margin="dense"
+                        id="dropOff"
+                        name="dropOff"
+                        label="Drop Off Location"
+                        type="text"
+                        fullWidth
+                        value={bookingFormData.dropOff}
+                        onChange={handleInputChange}
+                        disabled={mutationLoading}
+                    />
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDeleteConfirm} color="secondary" disabled={mutationLoading}>
+                <DialogActions sx={{ p: '16px 24px' }}>
+                    <Button onClick={handleCloseDialog} color="secondary" disabled={mutationLoading}>
                         Cancel
                     </Button>
-                    <Button onClick={handleDeleteBooking} color="error" variant="contained" disabled={mutationLoading}>
-                        Delete
+                    <Button
+                        onClick={handleSaveBooking}
+                        color="primary"
+                        variant="contained"
+                        disabled={mutationLoading}
+                        startIcon={mutationLoading ? <CircularProgress size={20} color="inherit" /> : null}
+                    >
+                        {mutationLoading ? 'Saving...' : (dialogType === 'create' ? 'Create' : 'Update')}
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Snackbar for update/delete messages */}
-            <Snackbar open={statusUpdateMessage.open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <AlertSnackbar onClose={handleCloseSnackbar} severity={statusUpdateMessage.severity}>
-                    {statusUpdateMessage.text}
-                </AlertSnackbar>
-            </Snackbar>
-
+            {/* Delete Confirmation */}
+            <DeleteBookingDialog
+                open={openDeleteConfirm}
+                onClose={handleCloseDeleteConfirm}
+                onConfirm={handleDeleteBooking}
+                bookingId={selectedBooking?.bookingID}
+            />
         </Box>
     );
 }
