@@ -16,25 +16,23 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Modal, // <-- Import Modal
-    Dialog, // <-- More structured modal using Dialog
+    Dialog,
     DialogTitle,
     DialogContent,
     DialogContentText,
     DialogActions,
-    Rating, // <-- Optional: Import Rating for star reviews
-    Snackbar // <-- For brief success/error messages after review submit
+    Rating,
+    Snackbar,
+    Avatar
 } from '@mui/material';
-import { AccountCircle, Email, School, Person, ArrowBack, CalendarToday, RateReview } from '@mui/icons-material'; // Import CalendarToday, RateReview
+import { AccountCircle, Email, School, Person, ArrowBack, CalendarToday, RateReview } from '@mui/icons-material';
 import './Profile.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = "http://localhost:8080";
 
-// Helper to format raw digits "123456789" → "12-3456-789"
 function formatSchoolId(value = "") {
-    // ... (keep existing function)
     const digits = value.replace(/\D/g, '').slice(0, 9);
     const part1 = digits.slice(0, 2);
     const part2 = digits.slice(2, 6);
@@ -59,21 +57,16 @@ export default function Profile() {
     const [userBookingsLoading, setUserBookingsLoading] = useState(true);
     const [userBookingsError, setUserBookingsError] = useState(null);
 
-    // --- NEW STATE FOR REVIEW MODAL ---
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-    const [reviewTargetBooking, setReviewTargetBooking] = useState(null); // Store the whole booking object
+    const [reviewTargetBooking, setReviewTargetBooking] = useState(null);
     const [reviewText, setReviewText] = useState('');
-    // const [reviewRating, setReviewRating] = useState(0); // Optional: For star rating
+    const [reviewRating, setReviewRating] = useState(0);
     const [reviewSubmitting, setReviewSubmitting] = useState(false);
     const [reviewError, setReviewError] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarSeverity, setSnackbarSeverity] = useState('info'); // 'success', 'error', 'warning', 'info'
-    // --- END NEW STATE ---
+    const [snackbarSeverity, setSnackbarSeverity] = 'info';
 
-    // --- Effects (fetchUserData, fetchUserBookings) ---
-    // ... (keep existing useEffect hooks)
-    // --- Effect to fetch user profile data ---
     useEffect(() => {
         const fetchUserData = async () => {
             const token = localStorage.getItem('token');
@@ -90,14 +83,12 @@ export default function Profile() {
                 });
 
                 const data = response.data;
-                // Ensure schoolid is always treated as string initially, even if null/undefined from backend
                 const rawSchoolId = data.schoolid ?? '';
 
                 const mergedData = {
                     ...data,
-                    // Assuming username is included, fallback to localStorage if necessary (though backend should return it)
                     username: data.username ?? (JSON.parse(localStorage.getItem('user'))?.username ?? ''),
-                    schoolid: rawSchoolId // Keep the raw value
+                    schoolid: rawSchoolId
                 };
 
                 setUserData(mergedData);
@@ -106,14 +97,12 @@ export default function Profile() {
                     lastName: mergedData.lastName || '',
                     username: mergedData.username,
                     email: mergedData.email || '',
-                    // Format the initial schoolId for editing:
                     schoolId: formatSchoolId(rawSchoolId)
                 });
             } catch (err) {
                 const status = err.response?.status;
                 if (status === 401) {
                     setError('Not authenticated. Redirecting...');
-                    // Clear token on 401 to ensure clean state
                     localStorage.removeItem('token');
                     navigate('/login');
                 } else {
@@ -125,20 +114,15 @@ export default function Profile() {
         };
 
         fetchUserData();
-    }, [navigate]); // Add navigate to dependency array
+    }, [navigate]);
 
-
-    // --- NEW Effect to fetch user booking history ---
-    // This effect runs ONLY after userData is successfully loaded
     useEffect(() => {
-        // Only fetch bookings if userData is available (meaning user profile was loaded)
         if (userData) {
             const fetchUserBookings = async () => {
                 setUserBookingsLoading(true);
                 setUserBookingsError(null);
-                const token = localStorage.getItem('token'); // Get token again, though it should exist if userData loaded
+                const token = localStorage.getItem('token');
 
-                // Ensure token exists (should be true if userData is loaded)
                 if (!token) {
                     setUserBookingsError("Authentication token missing for booking history.");
                     setUserBookingsLoading(false);
@@ -146,16 +130,13 @@ export default function Profile() {
                 }
 
                 try {
-                    // Call the new backend endpoint for user's bookings
-                    // Make sure this endpoint exists and works!
-                    // Using /api/bookings/my as the example path
                     const response = await axios.get(`${API_BASE_URL}/api/bookings/my`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    setUserBookings(response.data); // Assume this returns an array of booking objects
+                    setUserBookings(response.data);
                     setUserBookingsLoading(false);
                 } catch (err) {
-                    console.error("Error fetching user bookings:", err.response || err);
+                    console.error("Error fetching user bookings with review status:", err.response || err);
                     setUserBookingsError("Failed to load booking history.");
                     setUserBookingsLoading(false);
                 }
@@ -163,18 +144,12 @@ export default function Profile() {
 
             fetchUserBookings();
         }
-        // Dependency array: re-run this effect if userData changes (specifically if userid might change, though unlikely)
     }, [userData]);
-    // --- END NEW Effect ---
 
-
-    // --- Profile Edit Handlers (handleBackClick, handleEditClick, etc.) ---
-    // ... (keep existing handlers)
     const handleBackClick = () => navigate(-1);
     const handleEditClick = () => setIsEditing(true);
     const handleCancelClick = () => {
         setIsEditing(false);
-        // Reset edited data back to the current userData, using the raw schoolid for formatting
         setEditedData({
             firstName: userData.firstName || '',
             lastName: userData.lastName || '',
@@ -182,13 +157,12 @@ export default function Profile() {
             email: userData.email || '',
             schoolId: formatSchoolId(userData.schoolid)
         });
-        setUpdateSuccess(null); // Clear success message on cancel
-        setError(null); // Clear any main error message
+        setUpdateSuccess(null);
+        setError(null);
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        // Only apply formatting to schoolId input
         if (name === 'schoolId') {
             setEditedData(prev => ({ ...prev, [name]: formatSchoolId(value) }));
         } else {
@@ -199,8 +173,8 @@ export default function Profile() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setUpdateLoading(true);
-        setError(null); // Clear previous errors
-        setUpdateSuccess(null); // Clear previous success
+        setError(null);
+        setUpdateSuccess(null);
 
         const token = localStorage.getItem('token');
         if (!token) {
@@ -211,15 +185,10 @@ export default function Profile() {
         }
 
         try {
-            // Strip dashes from schoolId before sending
             const payload = {
-                // Only send fields allowed for update by the backend /users/me PUT endpoint
-                // Assume backend handles username updates if allowed
                 firstName: editedData.firstName,
                 lastName: editedData.lastName,
-                username: editedData.username, // Assuming username can be updated
-                // email: editedData.email, // Email typically not updated via this endpoint
-                schoolid: editedData.schoolId.replace(/-/g, '') // Send the raw number
+                username: editedData.username,
             };
 
             const response = await axios.put(
@@ -228,16 +197,10 @@ export default function Profile() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            // Assuming the backend returns the updated user object in the response body
-            const updatedUser = response.data; // Adjust based on your actual backend response structure
-
-            // Update userData state with fetched updated data
-            setUserData(prev => ({ ...prev, ...updatedUser, schoolid: updatedUser.schoolid ?? '' })); // Ensure schoolid is updated and is string
-
+            const updatedUser = response.data;
+            setUserData(prev => ({ ...prev, ...updatedUser, schoolid: updatedUser.schoolid ?? '' }));
             setIsEditing(false);
             setUpdateSuccess('Profile updated successfully!');
-            // Optionally update localStorage user details, but be careful about sensitive data
-            // localStorage.setItem('user', JSON.stringify({ ...JSON.parse(localStorage.getItem('user')), ...updatedUser })); // Example merge
         } catch (err) {
             console.error("Profile update failed:", err.response || err);
             const errorMessage = err.response?.data?.message || err.message || 'Failed to update profile.';
@@ -247,19 +210,17 @@ export default function Profile() {
         }
     };
 
-
-    // --- NEW Review Modal Handlers ---
     const handleOpenReviewModal = (booking) => {
         setReviewTargetBooking(booking);
-        setReviewText(''); // Reset fields when opening
-        // setReviewRating(0); // Reset rating
-        setReviewError(null); // Clear previous errors
+        setReviewText('');
+        setReviewRating(0);
+        setReviewError(null);
         setIsReviewModalOpen(true);
     };
 
     const handleCloseReviewModal = () => {
         setIsReviewModalOpen(false);
-        setReviewTargetBooking(null); // Clear target
+        setReviewTargetBooking(null);
     };
 
     const handleSnackbarClose = (event, reason) => {
@@ -270,7 +231,7 @@ export default function Profile() {
     };
 
     const handleReviewSubmit = async () => {
-        if (!reviewTargetBooking || !reviewText.trim()) { // Basic validation
+        if (!reviewTargetBooking || !reviewText.trim()) {
             setReviewError("Review text cannot be empty.");
             return;
         }
@@ -284,17 +245,12 @@ export default function Profile() {
             return;
         }
 
-        // Construct the payload according to ReportController expectations
         const payload = {
-            // Add other ReportEntity fields as needed (e.g., rating)
-            // description: reviewText, // Assuming your ReportEntity has a 'description' field for the text
-            // comment: reviewText // Or maybe 'comment'? Adjust field name as needed!
-            reviewText: reviewText, // <<<--- ADJUST THIS FIELD NAME based on your ReportEntity.java
-            // rating: reviewRating, // Optional: Add rating if you use it
+            rating: reviewRating,
+            comment: reviewText,
             booking: {
-                bookingID: reviewTargetBooking.bookingID // Send the booking ID within a booking object
+                bookingID: reviewTargetBooking.bookingID
             }
-            // The backend will fetch the full booking, set the date, etc.
         };
 
         try {
@@ -307,42 +263,28 @@ export default function Profile() {
             setSnackbarOpen(true);
             handleCloseReviewModal();
 
-            // OPTIONAL: Update the UI to reflect the review submission
-            // This is tricky without knowing if a review exists. The simplest way
-            // is to just close the modal. A better way requires the backend
-            // to indicate if a review exists for a booking.
-            // Example: Refetch bookings or update the specific booking's state locally
-            // setUserBookings(prevBookings =>
-            //     prevBookings.map(b =>
-            //         b.bookingId === reviewTargetBooking.bookingId
-            //             ? { ...b, hasReview: true } // Needs 'hasReview' flag from backend
-            //             : b
-            //     )
-            // );
+            setUserBookings(prevBookings =>
+                prevBookings.map(b =>
+                    b.bookingID === reviewTargetBooking.bookingID
+                        ? { ...b, hasReviewed: true }
+                        : b
+                )
+            );
 
         } catch (err) {
             console.error("Review submission failed:", err.response || err);
             const backendError = err.response?.data?.message || err.response?.data?.error;
             const errorMessage = backendError || err.message || "Failed to submit review.";
-            // Display error inside the modal
             setReviewError(`Error: ${errorMessage}`);
-            // Or use the snackbar for errors too
-            // setSnackbarMessage(`Error: ${errorMessage}`);
-            // setSnackbarSeverity('error');
-            // setSnackbarOpen(true);
         } finally {
             setReviewSubmitting(false);
         }
     };
-    // --- END Review Modal Handlers ---
 
-
-    // --- Render Logic ---
     if (loading) {
-        // ... (keep existing loading render)
         return (
-            <div className="root">
-                <Paper className="profile-paper" sx={{ p: 3, textAlign: 'center' }}>
+            <div className="root-profile">
+                <Paper className="profile-paper-loading" sx={{ p: 3, textAlign: 'center' }}>
                     <CircularProgress size={80} />
                     <Typography variant="h6" sx={{ mt: 2 }}>Loading Profile...</Typography>
                 </Paper>
@@ -351,10 +293,9 @@ export default function Profile() {
     }
 
     if (error && !userData) {
-        // ... (keep existing error render)
         return (
-            <div className="root">
-                <Paper className="profile-paper" sx={{ p: 3 }}>
+            <div className="root-profile">
+                <Paper className="profile-paper-error" sx={{ p: 3 }}>
                     <Alert severity="error" variant="filled">
                         <AlertTitle>Error Loading Profile</AlertTitle>
                         {error}
@@ -365,39 +306,39 @@ export default function Profile() {
     }
 
     return (
-        <div className="root">
+        <div className="root-profile">
             <Paper className="profile-paper">
-                {/* Back Button, Avatar, Name, Edit/View Logic */}
-                {/* ... (keep existing profile section) ... */}
                 {/* Back Button */}
                 <Button
                     startIcon={<ArrowBack />}
                     onClick={handleBackClick}
-                    sx={{ mb: 2, textTransform: 'none' }}
+                    sx={{ mb: 3, alignSelf: 'start', textTransform: 'none' }}
                 >
-                    Back
+                    Back to Dashboard
                 </Button>
 
-                {/* Avatar & Name */}
-                <Box sx={{ textAlign: 'center', mb: 2 }}>
-                    <AccountCircle sx={{ fontSize: 80 }} />
-                    <Typography variant="h4" sx={{ mt: 1 }}>
-                        {userData?.firstName} {userData?.lastName} {/* Use optional chaining */}
+                {/* Profile Header */}
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center' }}> {/* New Box to center Avatar */}
+                        <Avatar sx={{ width: 100, height: 100, fontSize: 40, bgcolor: '#CA8787'}}>
+                            {userData?.firstName?.charAt(0).toUpperCase()}
+                            {userData?.lastName?.charAt(0).toUpperCase()}
+                        </Avatar>
+                    </Box>
+                    <Typography variant="h4" className="profile-name" sx={{ mt: 1 }}>
+                        {userData?.firstName} {userData?.lastName}
                     </Typography>
                     <Typography variant="subtitle1" color="textSecondary">
-                        @{userData?.username} {/* Use optional chaining */}
+                        @{userData?.username}
                     </Typography>
                 </Box>
 
                 {updateSuccess && <Alert severity="success" sx={{ mb: 2 }}>{updateSuccess}</Alert>}
-                {/* Show update error here if it occurs while editing */}
                 {error && isEditing && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-
+                {/* Edit Profile Section */}
                 {isEditing ? (
-                    // --- EDITING FORM ---
-                    <Box component="form" onSubmit={handleSubmit} sx={{ px: 3 }}>
-                        {/* ... Keep TextFields ... */}
+                    <Box component="form" onSubmit={handleSubmit} sx={{ px: 3, mt: 2 }}>
                         <TextField
                             fullWidth
                             margin="normal"
@@ -405,6 +346,7 @@ export default function Profile() {
                             name="firstName"
                             value={editedData.firstName}
                             onChange={handleInputChange}
+                            variant="outlined"
                         />
                         <TextField
                             fullWidth
@@ -413,6 +355,7 @@ export default function Profile() {
                             name="lastName"
                             value={editedData.lastName}
                             onChange={handleInputChange}
+                            variant="outlined"
                         />
                         <TextField
                             fullWidth
@@ -421,6 +364,7 @@ export default function Profile() {
                             name="username"
                             value={editedData.username}
                             onChange={handleInputChange}
+                            variant="outlined"
                         />
                         <TextField
                             fullWidth
@@ -428,7 +372,8 @@ export default function Profile() {
                             label="Email"
                             name="email"
                             value={editedData.email}
-                            disabled // Email typically not editable
+                            disabled
+                            variant="outlined"
                         />
                         <TextField
                             fullWidth
@@ -437,93 +382,95 @@ export default function Profile() {
                             name="schoolId"
                             value={editedData.schoolId}
                             disabled
-                            placeholder="e.g., 12-3456-789" // Add placeholder for format
+                            placeholder="e.g., 12-3456-789"
+                            variant="outlined"
                         />
 
-                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
-                            <Button type="submit" variant="contained" disabled={updateLoading}>
+                        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                            <Button onClick={handleCancelClick}>Cancel</Button>
+                            <Button type="submit" variant="contained" color="primary" disabled={updateLoading}>
                                 {updateLoading ? <CircularProgress size={24} /> : 'Save Changes'}
                             </Button>
-                            <Button onClick={handleCancelClick}>Cancel</Button>
                         </Box>
                     </Box>
                 ) : (
-                    // --- VIEWING PROFILE DETAILS ---
-                    <Grid container direction="column" spacing={1} sx={{ px: 3 }}>
-                        {/* ... Keep Grid items ... */}
-                        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Person sx={{ mr: 1 }} />
-                            <Typography>Username: {userData?.username}</Typography> {/* Use optional chaining */}
+                    <Grid container spacing={2} sx={{ px: 3, mt: 2 }}>
+                        <Grid item xs={12} sm={6}>
+                            <Box className="info-item">
+                                <Person className="info-icon" />
+                                <Typography><span className="info-label">Username:</span> {userData?.username}</Typography>
+                            </Box>
                         </Grid>
-                        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Email sx={{ mr: 1 }} />
-                            <Typography>Email: {userData?.email}</Typography> {/* Use optional chaining */}
+                        <Grid item xs={12} sm={6}>
+                            <Box className="info-item">
+                                <Email className="info-icon" />
+                                <Typography><span className="info-label">Email:</span> {userData?.email}</Typography>
+                            </Box>
                         </Grid>
-                        <Grid item sx={{ display: 'flex', alignItems: 'center' }}>
-                            <School sx={{ mr: 1 }} />
-                            <Typography>
-                                School ID: {formatSchoolId(userData?.schoolid)} {/* Use optional chaining */}
-                            </Typography>
+                        <Grid item xs={12}>
+                            <Box className="info-item">
+                                <School className="info-icon" />
+                                <Typography><span className="info-label">School ID:</span> {formatSchoolId(userData?.schoolid)}</Typography>
+                            </Box>
                         </Grid>
-                        <Grid item>
-                            <Button onClick={handleEditClick} sx={{ mt: 2 }}>
+                        <Grid item xs={12} sx={{ mt: 10, textAlign: 'right' }}>
+                            <Button onClick={handleEditClick} variant="outlined" color="primary">
                                 Edit Profile
                             </Button>
                         </Grid>
                     </Grid>
                 )}
 
-
-                {/* --- BOOKING HISTORY SECTION --- */}
+                {/* Booking History Section */}
                 <Divider sx={{ my: 4 }} />
 
                 <Box sx={{ px: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <CalendarToday sx={{ mr: 1 }} />
-                        <Typography variant="h5">Booking History</Typography>
+                        <CalendarToday className="section-icon" sx={{ mr: 1 }} />
+                        <Typography variant="h6" className="section-title">Booking History</Typography>
                     </Box>
 
                     {userBookingsLoading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                             <CircularProgress size={30} />
-                            <Typography variant="body1" sx={{ ml: 2 }}>Loading bookings...</Typography>
+                            <Typography variant="body1" sx={{ ml: 2, color: 'textSecondary' }}>Loading bookings...</Typography>
                         </Box>
                     ) : userBookingsError ? (
                         <Alert severity="error" sx={{ mt: 2 }}>{userBookingsError}</Alert>
                     ) : userBookings.length === 0 ? (
-                        <Typography variant="body1" sx={{ mt: 2 }}>No booking history found.</Typography>
+                        <Typography variant="body1" sx={{ mt: 2, color: 'textSecondary' }}>No booking history found.</Typography>
                     ) : (
-                        <TableContainer component={Paper} variant="outlined">
+                        <TableContainer component={Paper} variant="outlined" sx={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                             <Table size="small" aria-label="user bookings table">
-                                <TableHead>
+                                <TableHead sx={{ backgroundColor: '#f8f8f8' }}>
                                     <TableRow>
-                                        <TableCell>ID</TableCell>
-                                        <TableCell>Vehicle Plate</TableCell>
-                                        <TableCell>Pick Up</TableCell>
-                                        <TableCell>Drop Off</TableCell>
-                                        <TableCell>Req Date</TableCell>
-                                        <TableCell>Start Date</TableCell>
-                                        <TableCell>End Date</TableCell>
-                                        <TableCell align="right">Pass.</TableCell>
-                                        <TableCell>Status</TableCell>
-                                        <TableCell>Actions</TableCell> {/* <-- NEW COLUMN HEADER */}
+                                        <TableCell className="table-header-cell">ID</TableCell>
+                                        <TableCell className="table-header-cell">Vehicle</TableCell>
+                                        <TableCell className="table-header-cell">Pick Up</TableCell>
+                                        <TableCell className="table-header-cell">Drop Off</TableCell>
+                                        <TableCell className="table-header-cell">Req Date</TableCell>
+                                        <TableCell className="table-header-cell">Start Date</TableCell>
+                                        <TableCell className="table-header-cell">End Date</TableCell>
+                                        <TableCell className="table-header-cell" align="right">Pass.</TableCell>
+                                        <TableCell className="table-header-cell">Status</TableCell>
+                                        <TableCell className="table-header-cell">Actions</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {userBookings.map((booking) => (
                                         <TableRow
-                                            key={booking.bookingId} // Ensure bookingId is the correct key
+                                            key={booking.bookingID}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
-                                            <TableCell component="th" scope="row">{booking.bookingID}</TableCell>
-                                            <TableCell>{booking.vehicle?.plateNumber || 'N/A'}</TableCell>
-                                            <TableCell>{booking.pickUp || 'N/A'}</TableCell>
-                                            <TableCell>{booking.dropOff || 'N/A'}</TableCell>
-                                            <TableCell>{booking.requestDate ? new Date(booking.requestDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                            <TableCell>{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                            <TableCell>{booking.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                            <TableCell align="right">{booking.numberOfPassengers}</TableCell>
-                                            <TableCell>
+                                            <TableCell component="th" scope="row" className="table-cell">{booking.bookingID}</TableCell>
+                                            <TableCell className="table-cell">{booking.vehicle?.plateNumber || 'N/A'}</TableCell>
+                                            <TableCell className="table-cell">{booking.pickUp || 'N/A'}</TableCell>
+                                            <TableCell className="table-cell">{booking.dropOff || 'N/A'}</TableCell>
+                                            <TableCell className="table-cell">{booking.requestDate ? new Date(booking.requestDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                            <TableCell className="table-cell">{booking.startDate ? new Date(booking.startDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                            <TableCell className="table-cell">{booking.endDate ? new Date(booking.endDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                            <TableCell className="table-cell" align="right">{booking.numberOfPassengers}</TableCell>
+                                            <TableCell className="table-cell">
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
@@ -534,26 +481,22 @@ export default function Profile() {
                                                     {booking.status}
                                                 </Typography>
                                             </TableCell>
-                                            {/* --- NEW ACTION CELL --- */}
-                                            <TableCell>
-                                                {/* --- CONDITIONALLY RENDER REVIEW BUTTON --- */}
-                                                {/* Check if status is 'Done'. You might need to adjust the exact string 'Done' based on your backend enum/values */}
-                                                {/* TODO: Add a check here if the booking already has a review, if that data is available */}
-                                                {booking.status === 'Done' && (
+                                            <TableCell className="table-cell">
+                                                {booking.status === 'Done' && !booking.hasReviewed && (
                                                     <Button
                                                         variant="outlined"
                                                         size="small"
                                                         startIcon={<RateReview />}
                                                         onClick={() => handleOpenReviewModal(booking)}
-                                                        // disabled={booking.hasReview} // Optional: Disable if already reviewed (needs 'hasReview' flag from backend)
+                                                        className="review-button"
                                                     >
                                                         Review
-                                                        {/* {booking.hasReview ? 'Reviewed' : 'Review'} */}
                                                     </Button>
                                                 )}
-                                                {/* Add other potential actions here */}
+                                                {booking.hasReviewed && (
+                                                    <Typography variant="caption" color="textSecondary">Reviewed</Typography>
+                                                )}
                                             </TableCell>
-                                            {/* --- END NEW ACTION CELL --- */}
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -567,25 +510,25 @@ export default function Profile() {
 
             {/* --- REVIEW MODAL DIALOG --- */}
             <Dialog open={isReviewModalOpen} onClose={handleCloseReviewModal} maxWidth="sm" fullWidth>
-                <DialogTitle>Leave a Review</DialogTitle>
+                <DialogTitle className="dialog-title">Leave a Review</DialogTitle>
                 <DialogContent>
-                    {reviewTargetBooking && ( // Ensure booking data is loaded before showing details
-                        <DialogContentText sx={{ mb: 2 }}>
+                    {reviewTargetBooking && (
+                        <DialogContentText sx={{ mb: 2 }} className="dialog-content-text">
                             Reviewing booking ID: {reviewTargetBooking.bookingID} for vehicle {reviewTargetBooking.vehicle?.plateNumber || 'N/A'}.
                         </DialogContentText>
                     )}
 
-                    {/* Optional: Rating Component */}
-                    {/* <Box sx={{ mb: 2 }}>
-                        <Typography component="legend">Rating</Typography>
+                    <Box sx={{ mb: 2 }}>
+                        <Typography component="legend" className="rating-label">Rating</Typography>
                         <Rating
                             name="booking-rating"
                             value={reviewRating}
                             onChange={(event, newValue) => {
                                 setReviewRating(newValue);
                             }}
+                            className="rating-component"
                         />
-                    </Box> */}
+                    </Box>
 
                     <TextField
                         autoFocus
@@ -599,21 +542,23 @@ export default function Profile() {
                         rows={4}
                         value={reviewText}
                         onChange={(e) => setReviewText(e.target.value)}
-                        error={!!reviewError && !reviewText.trim()} // Show error if reviewError exists and text is empty
-                        helperText={!reviewText.trim() && reviewError ? reviewError : ''} // Show specific validation message
+                        error={!!reviewError && !reviewText.trim()}
+                        helperText={!reviewText.trim() && reviewError ? reviewError : ''}
+                        className="review-text-field"
                     />
-                    {/* Show general submission errors here */}
                     {reviewError && reviewText.trim() && (
-                        <Alert severity="error" sx={{ mt: 2 }}>{reviewError}</Alert>
+                        <Alert severity="error" sx={{ mt: 2 }} className="review-error-alert">{reviewError}</Alert>
                     )}
 
                 </DialogContent>
-                <DialogActions sx={{ p: 2 }}>
+                <DialogActions sx={{ p: 2 }} className="dialog-actions">
                     <Button onClick={handleCloseReviewModal} color="secondary">Cancel</Button>
                     <Button
                         onClick={handleReviewSubmit}
                         variant="contained"
-                        disabled={reviewSubmitting || !reviewText.trim()} // Disable if submitting or text is empty
+                        color="primary"
+                        disabled={reviewSubmitting || !reviewText.trim() || reviewRating === 0}
+                        className="submit-review-button"
                     >
                         {reviewSubmitting ? <CircularProgress size={24} /> : 'Submit Review'}
                     </Button>
@@ -624,7 +569,7 @@ export default function Profile() {
             {/* --- Snackbar for feedback --- */}
             <Snackbar
                 open={snackbarOpen}
-                autoHideDuration={4000} // Hide after 4 seconds
+                autoHideDuration={4000}
                 onClose={handleSnackbarClose}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >

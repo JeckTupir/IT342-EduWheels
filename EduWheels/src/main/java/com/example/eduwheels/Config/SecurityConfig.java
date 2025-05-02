@@ -83,6 +83,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/bookings/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").authenticated()
 
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
+
+
                         // Fallback
                         .anyRequest().authenticated()
                 )

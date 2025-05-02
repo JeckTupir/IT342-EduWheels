@@ -1,346 +1,205 @@
 .booking-root {
-    background-color: #fce7e7; /* Light pink background */
-    padding: 20px; /* Increased padding */
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
     min-height: 100vh;
-    font-family: 'Inter', sans-serif;
 }
 
 .booking-container {
-    background: #f6eded;
-    padding: 30px 40px; /* More horizontal padding */
-    border-radius: 10px;
-    max-width: 1100px; /* Slightly wider max-width */
-    margin: 3rem auto;
-    display: grid; /* Use grid for layout */
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Responsive columns */
-    gap: 40px; /* Gap between columns */
-}
-
-/* --- Left Section: Booking Info & Form --- */
-.booking-info-section h2 {
-    margin-bottom: 5px;
-    font-size: 1.8em; /* Larger heading */
-    color: #333;
-}
-
-.booking-info-section p {
-    color: #333; /* Slightly darker grey */
-    font-size: 14px;
-    margin-bottom: 30px; /* More space below paragraph */
-}
-
-.booking-form {
-    display: flex;
-    flex-direction: column; /* Stack form groups vertically */
-    gap: 25px; /* Increased gap */
-}
-
-.booking-form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.booking-form-group label {
-    font-weight: bold;
-    margin-bottom: 8px; /* More space below label */
-    font-size: 0.95em;
-    color: #444;
-}
-
-/* Style for input fields */
-.booking-form-group input[type="text"],
-.booking-form-group input[type="number"] {
-    padding: 12px 15px; /* More padding */
-    border-radius: 6px; /* Slightly rounder corners */
-    border: 1px solid #ccc;
-    font-size: 1em;
-    transition: border-color 0.3s ease;
-}
-
-.booking-form-group input:focus {
-    border-color: #d29191; /* Highlight color on focus */
-    outline: none; /* Remove default outline */
-}
-
-/* Read-only inputs */
-.booking-form-group input[readonly] {
-    background-color: #f8f8f8; /* Light grey background */
-    cursor: default; /* Default cursor */
-    color: #555;
-}
-
-
-/* --- Input with Button (for map selection) --- */
-.input-with-button {
-    display: flex;
-    gap: 10px; /* Space between input and button */
-    align-items: center;
-}
-
-.input-with-button input {
-    flex-grow: 1; /* Input takes available space */
-}
-
-.map-toggle-button {
-    padding: 10px 15px;
-    background-color: #e0e0e0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    white-space: nowrap; /* Prevent button text wrapping */
-    transition: background-color 0.3s ease;
-}
-
-.map-toggle-button:hover {
-    background-color: #d0d0d0;
-}
-
-
-/* --- Map Modal Styles --- */
-.map-modal-backdrop {
-    position: fixed; /* Cover the whole screen */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Ensure it's above other content */
-    padding: 20px;
-}
-
-.map-modal-content {
-    background: white;
-    padding: 25px;
+    background-color: #fff;
     border-radius: 8px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 600px; /* Limit modal width */
-    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    padding: 40px;
+    max-width: 960px;
+    width: 100%;
 }
 
-.map-modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
+.booking-form-section h2,
+.vehicle-selection-section h2 {
     color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
 }
 
-.map-close-button {
-    margin-top: 20px;
-    padding: 10px 25px;
-    background-color: #d29191; /* Match main button color */
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s ease;
-}
-
-.map-close-button:hover {
-    background-color: #ba7676; /* Darker shade on hover */
-}
-
-
-/* --- Right Section: Vehicle Recommendation --- */
-.vehicle-recommendation-section {
-    text-align: center; /* Center align content in this section */
-}
-
-.vehicle-recommendation-section h3 {
-    margin-bottom: 5px;
-    font-size: 1.6em; /* Slightly smaller than main heading */
-    color: #333;
-}
-
-.vehicle-recommendation-section p {
-    color: #333;
-    font-size: 14px;
+.form-group {
     margin-bottom: 25px;
 }
 
-/* --- Carousel Controls & Display --- */
-.carousel-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px; /* Gap between buttons and carousel */
-    margin: 20px 0 30px 0; /* Spacing around controls */
-}
-
-/* Carousel navigation buttons */
-.carousel-button {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    color: #333;
-    font-size: 20px; /* Adjust size */
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
     font-weight: bold;
-    padding: 8px 16px; /* Adjust padding */
-    border-radius: 50%; /* Make buttons circular */
-    width: 45px; /* Fixed width */
-    height: 45px; /* Fixed height */
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.map-input-group {
     display: flex;
+    gap: 10px;
     align-items: center;
-    justify-content: center;
-    line-height: 1; /* Ensure symbol is centered vertically */
 }
 
-.carousel-button:hover {
-    background-color: #e0e0e0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.map-input-group input[type="text"] {
+    flex-grow: 1;
 }
 
-.carousel-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.map-input-group button,
+.form-group button {
+    background-color: #5A4040;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.map-input-group button:hover,
+.form-group button:hover {
+    background-color: #CA8787;
+}
+
+.map-modal {
+    position: absolute;
+    width: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+}
+
+.map-modal h3 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.map-modal button {
+    background-color: #CA8787;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.map-modal button:hover {
+    background-color: #5A4040;
 }
 
 .vehicle-carousel {
-    display: flex; /* Use flex for the card itself if needed, but controls handle alignment */
-    justify-content: center;
+    display: flex;
     align-items: center;
-    min-height: 300px; /* Ensure space even if no vehicle */
-}
-
-/* Styling for the currently displayed vehicle card */
-.vehicle-card {
-    border: 1px solid #ddd; /* Default border */
+    justify-content: space-between;
     padding: 20px;
-    border-radius: 10px;
-    width: 100%; /* Take full width of its container */
-    max-width: 320px; /* Max width for the card */
-    text-align: center;
-    background-color: #fff;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.05); /* Lighter shadow */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.vehicle-card.selected { /* Keep selected style, but maybe adjust */
-    border: 2px solid #d29191; /* Highlight border */
-    box-shadow: 0px 6px 15px rgba(0,0,0,0.1); /* Slightly stronger shadow */
-}
-
-.vehicle-image { /* Class added in JSX */
-    width: 100%;
-    height: 180px; /* Fixed height for consistency */
-    object-fit: cover; /* Cover the area, might crop */
+    border: 1px solid #ddd;
     border-radius: 8px;
-    margin-bottom: 15px; /* Space below image */
+    background-color: #f9f9f9;
 }
 
-.vehicle-details { /* Class added in JSX */
-    text-align: left; /* Align text left within details */
+.carousel-control {
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: #777;
+    cursor: pointer;
+    outline: none;
+    padding: 0;
 }
 
-.vehicle-details h4 {
+.carousel-control:hover {
+    color: #333;
+}
+
+.vehicle-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.vehicle-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.vehicle-details h3 {
+    color: #333;
     margin-top: 0;
     margin-bottom: 10px;
-    font-size: 1.25em; /* Larger vehicle name */
-    color: #333;
 }
 
 .vehicle-details p {
-    margin-bottom: 5px; /* Tighter spacing for details */
-    font-size: 0.95em;
     color: #555;
-    line-height: 1.4;
+    margin-bottom: 5px;
 }
 
-/* Message when no vehicles are available */
-.no-vehicle-message {
-    color: #333;
-    padding: 20px;
-}
-
-
-/* --- Book Now Button --- */
-.book-now-button {
-    background-color: #d29191;
-    border: none;
-    padding: 15px 40px; /* Larger padding */
-    font-size: 1.1em; /* Slightly larger font */
-    font-weight: bold;
+.book-button {
+    background-color: #E1ACAC;
     color: white;
-    border-radius: 8px;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    display: block; /* Make it block level */
-    width: fit-content; /* Fit content width */
-    margin: 30px auto 0 auto; /* Center button */
+    font-size: 1em;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
 }
 
-.book-now-button:hover:not(:disabled) {
-    background-color: #ba7676; /* Darker shade */
-    transform: translateY(-2px); /* Slight lift effect */
+.book-button:hover {
+    background-color: #CA8787;
 }
 
-.book-now-button:disabled {
-    background-color: #cccccc; /* Grey out when disabled */
-    cursor: not-allowed;
+.vehicle-selection-section > p {
+    text-align: center;
+    color: #777;
 }
 
-/* --- Leaflet Map Specific --- */
-.leaflet-container {
-    border-radius: 5px; /* Add rounded corners to the map */
-    border: 1px solid #ccc;
-}
-
-/* --- Responsive Adjustments --- */
-@media (max-width: 900px) {
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .booking-container {
-        grid-template-columns: 1fr; /* Stack columns on smaller screens */
-        padding: 20px;
+        grid-template-columns: 1fr;
     }
-    .booking-info-section, .vehicle-recommendation-section {
-        text-align: center; /* Center text in sections */
-    }
-    .vehicle-details {
-        text-align: center; /* Center vehicle details */
-    }
-}
 
-@media (max-width: 500px) {
-    .booking-root {
-        padding: 10px;
+    .vehicle-carousel {
+        flex-direction: column;
+        align-items: center;
     }
-    .booking-container {
-        padding: 20px 15px;
-    }
-    .booking-info-section h2 {
+
+    .carousel-control {
+        margin: 10px 0;
         font-size: 1.5em;
     }
-    .vehicle-recommendation-section h3 {
-        font-size: 1.4em;
+
+    .vehicle-card {
+        margin: 10px 0;
     }
-    .input-with-button {
-        flex-direction: column; /* Stack input and button */
-        align-items: stretch; /* Stretch items */
-    }
-    .map-toggle-button {
-        width: 100%; /* Full width button */
-        margin-top: 5px;
-    }
-    .carousel-controls {
-        gap: 10px;
-    }
-    .carousel-button {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-        padding: 6px 12px;
-    }
-    .book-now-button {
-        padding: 12px 30px;
-        font-size: 1em;
-        width: 100%; /* Full width */
-    }
-    .map-modal-content {
-        width: 100%;
-        padding: 15px;
+
+    .map-modal {
+        width: 90%;
     }
 }

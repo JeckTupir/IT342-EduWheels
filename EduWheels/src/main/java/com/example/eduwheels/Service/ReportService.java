@@ -1,5 +1,6 @@
 package com.example.eduwheels.Service;
 
+import com.example.eduwheels.Entity.BookingEntity;
 import com.example.eduwheels.Entity.ReportEntity;
 import com.example.eduwheels.Repository.ReportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +29,13 @@ public class ReportService {
         return reportRepository.findById(reportId);
     }
 
-    // Create or update a review
+    // Create a review
     public ReportEntity createReport(ReportEntity report) {
+        return reportRepository.save(report);
+    }
+
+    // Update a review
+    public ReportEntity updateReport(ReportEntity report) {
         return reportRepository.save(report);
     }
 
@@ -51,5 +57,10 @@ public class ReportService {
     // Optional: Get review by booking ID (to prevent duplicate reviews)
     public Optional<ReportEntity> getReviewByBookingId(Long bookingId) {
         return reportRepository.findByBookingBookingID(bookingId);
+    }
+
+    // New method to check if a review exists for a booking
+    public boolean existsByBooking(BookingEntity booking) {
+        return reportRepository.existsByBooking(booking);
     }
 }
