@@ -30,7 +30,7 @@ public class BookingEntity {
     private Status status;
 
     public enum Status {
-        Pending, Approved, Rejected, Going, Done, Accepted, Canceled
+        Pending, Approved, Rejected, Going, Done, Canceled
     }
 
     // Default constructor
