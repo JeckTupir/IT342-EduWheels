@@ -12,8 +12,7 @@ import Booking from './pages/BookingPage/BookingPage.jsx';
 import AdminDashboard from './pages/AdminDashboardPage/AdminDashboardPage.jsx';
 import AdminVehicles from './pages/AdminDashboardPage/AdminVehiclesPage.jsx';
 import AdminBookings from './pages/AdminDashboardPage/AdminBookingsPage.jsx';
-// import AdminReviews from './pages/AdminDashboardPage/AdminReviewsPage.jsx';
-// import AdminReports from './pages/AdminDashboardPage/AdminReportsPage.jsx';
+import AdminReviews from './pages/AdminDashboardPage/AdminReviewsPage.jsx';
 import AdminUsers from './pages/AdminDashboardPage/AdminUsersPage.jsx';
 import OAuthCallbackHandler from './pages/Handler/OAuthCallbackHandler.jsx';
 import Layout from './pages/Layout.jsx'; // <-- IMPORTANT: import the Layout
@@ -42,8 +41,7 @@ const RoutesComponent = () => {
                     <Route path="dashboard" element={<div>Welcome to the Dashboard Content</div>} />
                     <Route path="vehicles" element={<AdminVehicles />} />
                     <Route path="bookings" element={<AdminBookings />} />
-                    {/* <Route path="reviews" element={<AdminReviews />} /> */}
-                    {/* <Route path="reports" element={<AdminReports />} /> */}
+                     <Route path="reviews" element={<AdminReviews />} />
                     <Route path="users" element={<AdminUsers />} />
                 </Route>
             </Routes>

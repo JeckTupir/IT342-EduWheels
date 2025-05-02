@@ -107,14 +107,15 @@ export default function AdminVehiclesPage() {
     const [openDialog, setOpenDialog] = useState(false);
     const [dialogType, setDialogType] = useState('create');
     const [selectedVehicle, setSelectedVehicle] = useState(null); // Store the whole vehicle object for editing/deleting
-    const [vehicleFormData, setVehicleFormData] = useState({ // Renamed state for clarity
+    const [vehicleFormData, setVehicleFormData] = useState({
         plateNumber: '',
-        type: 'Bus', // Default value
+        type: 'Bus',
         capacity: '',
-        status: 'Available', // Default value
+        availableSeats: 0, // Add availableSeats here
+        status: 'Available',
         vehicleName: '',
-        photo: null, // File object or null
-        photoPreview: null, // For showing preview in dialog
+        photo: null,
+        photoPreview: null,
     });
     const [loading, setLoading] = useState(true); // For initial fetch
     const [mutationLoading, setMutationLoading] = useState(false); // For CUD operations
@@ -166,6 +167,7 @@ export default function AdminVehiclesPage() {
             plateNumber: '',
             type: 'Bus',
             capacity: '',
+            availableSeats: 0,
             status: 'Available',
             vehicleName: '',
             photo: null,
@@ -182,6 +184,7 @@ export default function AdminVehiclesPage() {
             plateNumber: vehicle.plateNumber || '',
             type: vehicle.type || 'Bus',
             capacity: vehicle.capacity || '',
+            availableSeats: vehicle.availableSeats || 0, // Populate availableSeats
             status: vehicle.status || 'Available',
             vehicleName: vehicle.vehicleName || '',
             photo: null, // Clear photo input, preview existing one
@@ -243,6 +246,7 @@ export default function AdminVehiclesPage() {
         formData.append('plateNumber', vehicleFormData.plateNumber);
         formData.append('type', vehicleFormData.type);
         formData.append('capacity', vehicleFormData.capacity);
+        formData.append('availableSeats', vehicleFormData.availableSeats);
         formData.append('status', vehicleFormData.status);
         formData.append('vehicleName', vehicleFormData.vehicleName); // FIX: Append vehicleName
         if (vehicleFormData.photo) { // Only append if a new photo was selected
@@ -423,6 +427,7 @@ export default function AdminVehiclesPage() {
                                 <TableCell>Plate Number</TableCell>
                                 <TableCell>Type</TableCell>
                                 <TableCell>Capacity</TableCell>
+                                <TableCell>Available Seats</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell align="right">Actions</TableCell>
                             </TableRow>
@@ -452,6 +457,7 @@ export default function AdminVehiclesPage() {
                                         <TableCell>{vehicle.plateNumber || 'N/A'}</TableCell>
                                         <TableCell>{vehicle.type || 'N/A'}</TableCell>
                                         <TableCell>{vehicle.capacity || 'N/A'}</TableCell>
+                                        <TableCell>{vehicle.availableSeats || 'N/A'}</TableCell>
                                         <TableCell>
                                             <Box
                                                 component="span"
@@ -583,6 +589,19 @@ export default function AdminVehiclesPage() {
                         required
                         disabled={mutationLoading}
                         InputProps={{ inputProps: { min: 1 } }} // Basic validation
+                    />
+                    <TextField
+                        margin="dense"
+                        id="availableSeats"
+                        name="availableSeats"
+                        label="Available Seats"
+                        type="number"
+                        fullWidth
+                        value={vehicleFormData.availableSeats}
+                        onChange={handleInputChange}
+                        required
+                        disabled={mutationLoading}
+                        InputProps={{ inputProps: { min: 0 } }} // Basic validation
                     />
                     <FormControl fullWidth margin="dense" required disabled={mutationLoading}>
                         <InputLabel id="status-label">Status</InputLabel>

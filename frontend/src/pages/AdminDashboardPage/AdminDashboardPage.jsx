@@ -53,10 +53,6 @@ export default function AdminDashboardPage() {
                     <ListItemIcon><RateReviewIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Reviews" />
                 </ListItem>
-                <ListItem button component={Link} to="/admin/reports" className="nav-item">
-                    <ListItemIcon><AssessmentIcon sx={{ color: '#5A4040' }} color="#5A4040" className="nav-icon" /></ListItemIcon>
-                    <ListItemText primary="Report" />
-                </ListItem>
                 <ListItem button component={Link} to="/admin/users" className="nav-item">
                     <ListItemIcon><PersonIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
                     <ListItemText primary="Users" />

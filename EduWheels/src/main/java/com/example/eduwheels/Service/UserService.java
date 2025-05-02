@@ -23,7 +23,6 @@ public class UserService {
     }
 
     public UserEntity createUser(UserEntity user) {
-
         return userRepository.save(user);
     }
 
@@ -36,10 +35,14 @@ public class UserService {
         return userRepository.findByEmail(email).isPresent();
     }
 
+    public Optional<UserEntity> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    // Method to find a user by username
+    public Optional<UserEntity> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     // Optionally, you could add more methods such as updating a user, etc.
-
-
-
 }
-
-
