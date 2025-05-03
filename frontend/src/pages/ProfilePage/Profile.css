@@ -1,0 +1,140 @@
+/* Profile.css */
+
+.root-profile {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 80vh;
+    background-color: #f4f6f8; /* Light grey background */
+    font-family: 'Roboto', sans-serif; /* Modern, readable font */
+}
+
+.profile-paper {
+    padding: 32px;
+    max-width: 700px; /* Slightly wider for better content flow */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Stretch items to fill container width */
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1); /* More pronounced shadow */
+    border-radius: 12px; /* More rounded corners */
+    background-color: white;
+}
+
+.profile-paper-loading {
+    padding: 48px;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-paper-error {
+    padding: 32px;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.profile-name {
+    color: #333;
+    font-weight: 500; /* Slightly lighter font weight for name */
+    margin-bottom: 0.5rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.info-icon {
+    margin-right: 12px;
+    color: #CA8787; /* Consistent primary color */
+}
+
+.info-label {
+    font-weight: 600; /* Bold label text */
+    margin-right: 4px;
+    color: #777;
+}
+
+.section-icon {
+    color: #5A4040;
+    margin-right: 8px;
+}
+
+.section-title {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Style for the booking history table */
+.table-header-cell {
+    background-color: #f8f8f8; /* Light background for header */
+    font-weight: 600;
+    color: #555;
+}
+
+.table-cell {
+    color: #444;
+}
+
+.review-button {
+    color: #CA8787;
+    border-color: #CA8787;
+    text-transform: none; /* Prevent uppercase */
+    transition: background-color 0.2s ease;
+    &:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+}
+
+/* Style for the review modal */
+.dialog-title {
+    color: #333;
+    font-weight: 500;
+}
+
+.dialog-content-text {
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.rating-label {
+    color: #555;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.rating-component {
+    margin-bottom: 1.5rem;
+}
+
+.review-text-field {
+    margin-bottom: 1.5rem;
+}
+
+.review-error-alert {
+    margin-top: 1rem;
+}
+
+.dialog-actions {
+    padding: 16px 24px;
+    justify-content: flex-end;
+}
+
+.submit-review-button {
+    color: white;
+    background-color: #5A4040; /* Consistent primary color */
+    text-transform: none;
+    transition: background-color 0.2s ease;
+    &:hover {
+        background-color: #453131;
+    }
+}

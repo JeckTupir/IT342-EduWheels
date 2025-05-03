@@ -1,0 +1,67 @@
+.contact-us-title {
+    color: #5A4040;
+    font-weight: 600;
+    text-align: center;
+}
+
+.contact-us-description {
+    color: #555;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.contact-section-card {
+    border-radius: 12px;
+    background-color: #fff;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-form .MuiTextField-root {
+    margin-bottom: 20px;
+}
+
+.contact-submit-btn {
+    background-color: #5A4040;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.contact-submit-btn:hover {
+    background-color: #7a5858;
+}
+
+.contact-info {
+    margin-top: 15px;
+}
+
+.contact-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.contact-line .MuiSvgIcon-root {
+    color: #CA8787;
+    margin-top: 2px;
+}
+
+.social-media-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.social-media-links .MuiIconButton-root {
+    color: #CA8787;
+    transition: transform 0.2s ease;
+}
+
+.social-media-links .MuiIconButton-root:hover {
+    transform: scale(1.1);
+}

@@ -5,6 +5,7 @@ import com.example.eduwheels.Utils.JwtAuthenticationFilter;
 import com.example.eduwheels.Utils.JwtUtil;
 import com.example.eduwheels.Handler.CustomOAuth2SuccessHandler; // Ensure this handler is correctly implemented
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,54 +60,54 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF as JWT is used (assuming stateless)
                 .csrf(csrf -> csrf.disable())
-                // Apply CORS configuration from the corsConfigurationSource bean
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // Configure session management to be stateless
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                // Define authorization rules
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // Permit access to public endpoints without authentication
                         .requestMatchers(
                                 "/users/login",
                                 "/users/signup",
-                                "/oauth2/**",      // For OAuth2 flow
-                                "/login",          // Default Spring Security login page path if needed, or custom
+                                "/oauth2/**",
+                                "/login",
                                 "/complete-profile",
-                                "/users/**",       // Consider if this is too broad
-                                "/api/vehicles/**", // Allow access to vehicle info
-                                "/api/bookings/**" // *** CORRECTED PATH *** Allow access to booking endpoints
+                                "/api/vehicles/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
-                        // IMPORTANT: Explicitly permit OPTIONS requests for CORS preflight checks
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Any other request must be authenticated
+
+                        // Allow read access to bookings, but require auth for write operations
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/bookings/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").authenticated()
+
+
+                        // Fallback
                         .anyRequest().authenticated()
                 )
-                // Configure OAuth2 Login
-                .oauth2Login(oauth2 -> oauth2
-                                // Specify the login page (can be a frontend route)
-                                .loginPage("/login") // Or your frontend login route e.g., "http://localhost:3000/login"
-                                // Use the custom success handler after successful OAuth2 login
-                                .successHandler(customOAuth2SuccessHandler)
-                                // Define failure handling
-                                .failureHandler((request, response, exception) -> {
-                                    // Redirect to frontend login page with an error parameter
-                                    String frontendLoginUrl = "http://localhost:3000/login?error=oauth_failed";
-                                    response.sendRedirect(frontendLoginUrl);
-                                })
-                        // Optional: Configure user info endpoint if needed
-                        // .userInfoEndpoint(userInfo -> userInfo
-                        //     .userService(googleOAuth2UserService) // If using custom user service
-                        // )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        })
                 )
-                // Add the custom JWT filter before the standard UsernamePasswordAuthenticationFilter
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .successHandler(customOAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            response.sendRedirect("http://localhost:3000/login?error=oauth_failed");
+                        })
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // Disable default form login
                 .formLogin(form -> form.disable())
-                // Disable HTTP Basic authentication
                 .httpBasic(basic -> basic.disable());
 
         return http.build();

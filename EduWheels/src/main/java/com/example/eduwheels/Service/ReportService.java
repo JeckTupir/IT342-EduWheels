@@ -1,5 +1,6 @@
 package com.example.eduwheels.Service;
 
+import com.example.eduwheels.Entity.BookingEntity;
 import com.example.eduwheels.Entity.ReportEntity;
 import com.example.eduwheels.Repository.ReportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,23 +19,48 @@ public class ReportService {
         this.reportRepository = reportRepository;
     }
 
-    // Get all reports
+    // Get all reviews
     public List<ReportEntity> getAllReports() {
         return reportRepository.findAll();
     }
 
-    // Get report by ID
+    // Get review by ID
     public Optional<ReportEntity> getReportById(Integer reportId) {
         return reportRepository.findById(reportId);
     }
 
-    // Create or update a report
+    // Create a review
     public ReportEntity createReport(ReportEntity report) {
         return reportRepository.save(report);
     }
 
-    // Delete report by ID
+    // Update a review
+    public ReportEntity updateReport(ReportEntity report) {
+        return reportRepository.save(report);
+    }
+
+    // Delete review by ID
     public void deleteReport(Integer reportId) {
         reportRepository.deleteById(reportId);
+    }
+
+    // Get all reviews for a specific vehicle
+    public List<ReportEntity> getReviewsByVehicleId(Long vehicleId) {
+        return reportRepository.findByBookingVehicleVehicleId(vehicleId);
+    }
+
+    // Get all reviews made by a specific user
+    public List<ReportEntity> getReviewsByUserId(Long userid) {
+        return reportRepository.findByUserUserid(userid);
+    }
+
+    // Optional: Get review by booking ID (to prevent duplicate reviews)
+    public Optional<ReportEntity> getReviewByBookingId(Long bookingId) {
+        return reportRepository.findByBookingBookingID(bookingId);
+    }
+
+    // New method to check if a review exists for a booking
+    public boolean existsByBooking(BookingEntity booking) {
+        return reportRepository.existsByBooking(booking);
     }
 }

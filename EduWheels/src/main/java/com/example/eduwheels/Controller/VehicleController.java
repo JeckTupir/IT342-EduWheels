@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -156,14 +157,19 @@ public class VehicleController {
     @GetMapping("/uploads/{filename:.+}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) {
         try {
-            Path uploadDir = Paths.get("uploads");
+            String uploadDirStr = "uploads" + File.separator; // Use File.separator for platform independence
+            Path uploadDir = Paths.get(uploadDirStr).toAbsolutePath().normalize();
             Path file = uploadDir.resolve(filename).normalize();
+
+            System.out.println("uploadDir.toAbsolutePath(): " + uploadDir.toAbsolutePath());
+            System.out.println("file.toAbsolutePath(): " + file.toAbsolutePath());
 
             if (!Files.exists(file) || !Files.isReadable(file)) {
                 return ResponseEntity.notFound().build();
             }
 
-            if (!file.startsWith(uploadDir.toAbsolutePath())) {
+            if (!file.startsWith(uploadDir)) { // Compare Path objects directly
+                System.out.println("Forbidden due to path mismatch!");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 

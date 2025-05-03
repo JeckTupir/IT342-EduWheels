@@ -1,0 +1,56 @@
+.about-us-container {
+    padding: 40px 20px;
+    background-color: #fefefe;
+    border-radius: 12px;
+}
+
+.about-us-title {
+    color: #5A4040;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.eduwheels-logo {
+    width: 30%;
+    height: auto;
+    padding-bottom: 20px;
+}
+
+.about-us-description,
+.our-mission-description,
+.our-vision-description,
+.our-commitment-description {
+    color: #444;
+    line-height: 1.7;
+    padding-bottom: 20px;
+}
+
+.our-mission-title,
+.our-vision-title,
+.our-commitment-title,
+.our-team-title {
+    color: #5A4040;
+    font-weight: 500;
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+.mission-points {
+    padding-left: 20px;
+    color: #555;
+}
+
+.mission-points li {
+    margin-bottom: 8px;
+}
+
+.team-card {
+    transition: transform 0.3s ease;
+    border-radius: 12px;
+
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
