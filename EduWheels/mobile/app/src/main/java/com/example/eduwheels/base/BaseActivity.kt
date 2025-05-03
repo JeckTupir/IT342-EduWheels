@@ -12,6 +12,7 @@ import com.example.eduwheels.user.UserProfile
 import com.example.eduwheels.util.SessionManager
 import com.example.eduwheels.vehicle.Vehicles
 
+
 open class BaseActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

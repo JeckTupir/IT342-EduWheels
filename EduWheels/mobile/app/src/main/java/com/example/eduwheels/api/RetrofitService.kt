@@ -17,17 +17,14 @@ interface RetrofitService {
     fun getAllUsers(): Call<List<User>>
 
     @GET("/users/{id}")
-    fun getUserById(@Path("id") id: String?): Call<User>
-
-    @GET("/users/school/{schoolid}")
-    fun getUserBySchoolId(@Path("schoolid") schoolid: String): Call<User>
+    fun getUserById(@Path("id") id: Long): Call<User>
 
     @PUT("/users/{id}")
     fun updateUser(
-        @Path("id") id: String?,
+        @Path("id") id: Long,
         @Body updatedUser: User
     ): Call<User>
 
-    @GET("/api/vehicles")
+    @GET("/api/vehicles") // This matches your VehicleController
     fun getAllVehicles(): Call<List<Vehicle.Vehicle>>
 }

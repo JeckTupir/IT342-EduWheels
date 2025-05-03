@@ -23,6 +23,14 @@ class LogIn : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sessionManager = SessionManager(this)
+        if (sessionManager.isLoggedIn()) {
+            startActivity(Intent(this, DashBoard::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_log_in)
 
         val schoolIdField = findViewById<EditText>(R.id.schoolId)
@@ -32,14 +40,9 @@ class LogIn : Activity() {
         val googleIcon = findViewById<ImageView>(R.id.googleIcon)
 
         loginButton.setOnClickListener {
-            val schoolId = schoolIdField.text.toString().trim()
-            val password = passwordField.text.toString().trim()
-
-            if (schoolId.isBlank() || password.isBlank()) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
-            } else {
-                loginUser(schoolId, password)
-            }
+            val id = schoolIdField.text.toString()
+            val pass = passwordField.text.toString()
+            loginUser(id, pass)
         }
 
         signUpText.setOnClickListener {
@@ -51,11 +54,10 @@ class LogIn : Activity() {
             .setGoogleIdTokenRequestOptions(
                 BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                     .setSupported(true)
-                    .setServerClientId("748786111030-q73gs93772ehif2t2ald2v2se7gqsfrd.apps.googleusercontent.com") // Your correct client ID
+                    .setServerClientId("748786111030-q73gs93772ehif2t2ald2v2se7gqsfrd.apps.googleusercontent.com")
                     .setFilterByAuthorizedAccounts(false)
                     .build()
-            )
-            .build()
+            ).build()
 
         googleIcon.setOnClickListener {
             oneTapClient.beginSignIn(signInRequest)
@@ -74,14 +76,17 @@ class LogIn : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQ_ONE_TAP && resultCode == RESULT_OK && data != null) {
-            val credential = oneTapClient.getSignInCredentialFromIntent(data)
-            val idToken = credential.googleIdToken
-
-            if (idToken != null) {
-                handleGoogleLogin(idToken)
-            } else {
-                Toast.makeText(this, "No ID token found!", Toast.LENGTH_SHORT).show()
+        if (requestCode == REQ_ONE_TAP && resultCode == RESULT_OK) {
+            try {
+                val credential = oneTapClient.getSignInCredentialFromIntent(data)
+                val idToken = credential.googleIdToken
+                if (idToken != null) {
+                    handleGoogleLogin(idToken)
+                } else {
+                    Toast.makeText(this, "No ID token!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Google login error: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -93,50 +98,59 @@ class LogIn : Activity() {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
+            var connection: HttpURLConnection? = null
             try {
-                val url = URL("http://192.168.74.208:8080/users/login")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Content-Type", "application/json")
-                connection.doOutput = true
+                val url = URL("http://192.168.40.148:8080/users/login")
+                connection = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    setRequestProperty("Content-Type", "application/json")
+                    doOutput = true
+                }
 
                 connection.outputStream.bufferedWriter().use {
                     it.write(loginJson.toString())
                 }
 
                 val responseCode = connection.responseCode
-                val responseBody = connection.inputStream.bufferedReader().readText()
+                val responseText = if (responseCode == HttpURLConnection.HTTP_OK) {
+                    connection.inputStream.bufferedReader().readText()
+                } else {
+                    connection.errorStream?.bufferedReader()?.readText() ?: "No error body"
+                }
 
                 runOnUiThread {
                     if (responseCode == HttpURLConnection.HTTP_OK) {
-                        val responseJson = JSONObject(responseBody)
-                        val token = responseJson.getString("token")
-                        val userJson = responseJson.getJSONObject("user")
+                        try {
+                            val responseJson = JSONObject(responseText)
+                            val userJson = responseJson.getJSONObject("user")
+                            val token = responseJson.getString("token")
 
-                        val sessionManager = SessionManager(this@LogIn)
-                        sessionManager.saveUserSession(
-                            userId = userJson.getLong("id"),             // 🛠 FIXED!
-                            schoolId = userJson.getString("schoolid"),
-                            email = userJson.getString("email"),
-                            name = userJson.getString("name"),
-                            token = token
-                        )
+                            val sessionManager = SessionManager(this@LogIn)
+                            sessionManager.saveUserSession(
+                                userId = userJson.getLong("id"),
+                                schoolId = userJson.getString("schoolid"),
+                                email = userJson.getString("email"),
+                                name = userJson.getString("name"),
+                                token = token
+                            )
 
-
-                        Toast.makeText(this@LogIn, "Login successful!", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@LogIn, DashBoard::class.java))
-                        finish()
+                            Toast.makeText(this@LogIn, "Welcome ${userJson.getString("name")}!", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@LogIn, DashBoard::class.java))
+                            finish()
+                        } catch (e: Exception) {
+                            Toast.makeText(this@LogIn, "Error reading user info", Toast.LENGTH_LONG).show()
+                        }
                     } else {
-                        Toast.makeText(this@LogIn, "Login failed: $responseBody", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@LogIn, "Login failed: $responseText", Toast.LENGTH_LONG).show()
                     }
                 }
 
-                connection.disconnect()
             } catch (e: Exception) {
-                e.printStackTrace()
                 runOnUiThread {
                     Toast.makeText(this@LogIn, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
+            } finally {
+                connection?.disconnect()
             }
         }
     }
@@ -144,7 +158,7 @@ class LogIn : Activity() {
     private fun handleGoogleLogin(idToken: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.74.208:8080/users/oauth2/google/login")
+                val url = URL("http://192.168.40.148:8080/users/oauth2/google/login")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")
@@ -169,13 +183,12 @@ class LogIn : Activity() {
 
                         val sessionManager = SessionManager(this@LogIn)
                         sessionManager.saveUserSession(
-                            userId = userJson.getLong("id"),             // 🛠 FIXED!
+                            userId = userJson.getLong("id"),
                             schoolId = userJson.getString("schoolid"),
                             email = userJson.getString("email"),
                             name = userJson.getString("name"),
                             token = token
                         )
-
 
                         Toast.makeText(this@LogIn, "Google login successful!", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@LogIn, DashBoard::class.java))
@@ -187,7 +200,6 @@ class LogIn : Activity() {
 
                 connection.disconnect()
             } catch (e: Exception) {
-                e.printStackTrace()
                 runOnUiThread {
                     Toast.makeText(this@LogIn, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }

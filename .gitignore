@@ -27,3 +27,5 @@ node_modules/
 .idea/
 EduWheels/src/main/resources/application.properties
 EduWheels/target/classes/application.properties
+EduWheels/src/main/resources/application.properties
+EduWheels/target/classes/application.properties
