@@ -38,7 +38,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         UserEntity user = googleOAuth2UserService.prepareOrFetchUser(oAuth2User);
 
-        String frontendCallback = "http://localhost:3000/oauth2/callback";
+        String frontendCallback = "https://it-342-edu-wheels.vercel.app/oauth2/callback";
 
         // If the user still needs to finish profile, signal the frontend to go to the form:
         if (user.getUserid() == null

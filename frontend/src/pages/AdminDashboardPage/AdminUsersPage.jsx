@@ -36,7 +36,7 @@ const getAuthToken = () => {
     return localStorage.getItem('token'); // Example: retrieve from local storage
 };
 
-const API_BASE_URL = 'http://localhost:8080/users'; // Updated base URL to /users
+const API_BASE_URL = 'https://it342-eduwheels.onrender.com/users'; // Updated base URL to /users
 
 // Styled Components
 const StyledPaper = styled(Paper)(({ theme }) => ({

@@ -2,14 +2,15 @@ package com.example.eduwheels.Service;
 
 import com.example.eduwheels.Entity.VehicleEntity;
 import com.example.eduwheels.Repository.VehicleRepository;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,33 +21,26 @@ public class VehicleService {
     @Autowired
     private VehicleRepository vehicleRepository;
 
-    @Value("${file.upload.directory}")
-    private String uploadDirectory;
+    @Autowired
+    private Storage storage; // Inject the Google Cloud Storage client
 
-    private Path uploadPath;
+    @Value("${gcs.bucket.name}")
+    private String bucketName;
 
-    @PostConstruct
-    public void init() throws IOException {
-        uploadPath = Paths.get(uploadDirectory).toAbsolutePath().normalize();
-        if (Files.notExists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-    }
+    // CRUD methods (getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle) remain largely the same
+    // You'll only need to adjust how the photoPath is handled
 
-    // CRUD methods omitted for brevity… same as before
+    public String uploadImageToGCS(MultipartFile file) throws IOException {
+        String imageName = "vehicles/" + UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+        BlobId blobId = BlobId.of(bucketName, imageName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                .setContentType(file.getContentType())
+                .build();
 
-    public String saveImageToFilesystem(MultipartFile file) throws IOException {
-        // Sanitize and build unique filename
-        String original = Paths.get(file.getOriginalFilename()).getFileName().toString();
-        String filename = UUID.randomUUID() + "_" + original;
+        storage.create(blobInfo, file.getBytes());
 
-        Path target = uploadPath.resolve(filename);
-
-        // Copy, replacing any existing file with the same name
-        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
-        // Return the public URI path
-        return "/uploads/" + filename;
+        // Return the public URL of the uploaded image
+        return String.format("https://storage.googleapis.com/%s/%s", bucketName, imageName);
     }
 
     public List<VehicleEntity> getAllVehicles() {
@@ -68,8 +62,9 @@ public class VehicleService {
                     existing.setPlateNumber(updated.getPlateNumber());
                     existing.setType(updated.getType());
                     existing.setCapacity(updated.getCapacity());
+                    existing.setAvailableSeats(updated.getAvailableSeats()); // Ensure this is mapped
                     existing.setStatus(updated.getStatus());
-                    existing.setPhotoPath(updated.getPhotoPath());
+                    existing.setPhotoPath(updated.getPhotoPath()); // Will now be a GCS URL
                     existing.setVehicleName(updated.getVehicleName());
                     return vehicleRepository.save(existing);
                 })
@@ -78,6 +73,7 @@ public class VehicleService {
 
     public boolean deleteVehicle(Long id) {
         if (vehicleRepository.existsById(id)) {
+            // Consider deleting the image from GCS here if needed
             vehicleRepository.deleteById(id);
             return true;
         }

@@ -103,7 +103,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .successHandler(customOAuth2SuccessHandler)
                         .failureHandler((request, response, exception) -> {
-                            response.sendRedirect("http://localhost:3000/login?error=oauth_failed");
+                            response.sendRedirect("https://it-342-edu-wheels.vercel.app/login?error=oauth_failed");
                         })
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -117,7 +117,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // Allow requests only from your React frontend origin
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Ensure this matches your frontend URL
+        configuration.setAllowedOrigins(List.of("https://it-342-edu-wheels.vercel.app/")); // Ensure this matches your frontend URL
         // Specify allowed HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")); // Added PATCH
         // Allow all headers (you might want to restrict this in production)

@@ -6,17 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -72,14 +66,13 @@ public class VehicleController {
         return (deleted) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
-    // --- FIX: Create Vehicle with Photo and availableSeats ---
     @PostMapping(path = "/withPhoto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<?> createVehicleWithPhoto(
             @RequestParam String plateNumber,
             @RequestParam String type,
             @RequestParam int capacity,
-            @RequestParam int availableSeats, // <-- added availableSeats
+            @RequestParam int availableSeats,
             @RequestParam String status,
             @RequestParam String vehicleName,
             @RequestParam(value = "photo", required = false) MultipartFile photo) {
@@ -89,19 +82,19 @@ public class VehicleController {
                 return ResponseEntity.badRequest().body(Map.of("message", "Plate number and vehicle name are required."));
             }
 
-            String photoPath = null;
+            String photoUrl = null;
             if (photo != null && !photo.isEmpty()) {
-                photoPath = vehicleService.saveImageToFilesystem(photo);
+                photoUrl = vehicleService.uploadImageToGCS(photo);
             }
 
-            VehicleEntity vehicle = new VehicleEntity(plateNumber, type, capacity, availableSeats, status, photoPath, vehicleName);
+            VehicleEntity vehicle = new VehicleEntity(plateNumber, type, capacity, availableSeats, status, photoUrl, vehicleName);
             VehicleEntity created = vehicleService.createVehicle(vehicle);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
 
         } catch (IOException ex) {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Error saving photo: " + ex.getMessage()));
+                    .body(Map.of("message", "Error uploading photo: " + ex.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -109,7 +102,6 @@ public class VehicleController {
         }
     }
 
-    // --- FIX: Update Vehicle with Photo and availableSeats ---
     @PutMapping(path = "/updateWithPhoto/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('Admin')")
     public ResponseEntity<?> updateVehicleWithPhoto(
@@ -117,7 +109,7 @@ public class VehicleController {
             @RequestParam String plateNumber,
             @RequestParam String type,
             @RequestParam int capacity,
-            @RequestParam int availableSeats, // <-- added availableSeats
+            @RequestParam int availableSeats,
             @RequestParam String status,
             @RequestParam String vehicleName,
             @RequestParam(value = "photo", required = false) MultipartFile photo) {
@@ -136,8 +128,8 @@ public class VehicleController {
             existing.setVehicleName(vehicleName);
 
             if (photo != null && !photo.isEmpty()) {
-                String photoPath = vehicleService.saveImageToFilesystem(photo);
-                existing.setPhotoPath(photoPath);
+                String photoUrl = vehicleService.uploadImageToGCS(photo);
+                existing.setPhotoPath(photoUrl);
             }
 
             VehicleEntity updated = vehicleService.updateVehicle(id, existing);
@@ -146,7 +138,7 @@ public class VehicleController {
         } catch (IOException ex) {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Error saving photo: " + ex.getMessage()));
+                    .body(Map.of("message", "Error uploading photo: " + ex.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -154,38 +146,7 @@ public class VehicleController {
         }
     }
 
-    @GetMapping("/uploads/{filename:.+}")
-    public ResponseEntity<Resource> getImage(@PathVariable String filename) {
-        try {
-            String uploadDirStr = "uploads" + File.separator; // Use File.separator for platform independence
-            Path uploadDir = Paths.get(uploadDirStr).toAbsolutePath().normalize();
-            Path file = uploadDir.resolve(filename).normalize();
-
-            System.out.println("uploadDir.toAbsolutePath(): " + uploadDir.toAbsolutePath());
-            System.out.println("file.toAbsolutePath(): " + file.toAbsolutePath());
-
-            if (!Files.exists(file) || !Files.isReadable(file)) {
-                return ResponseEntity.notFound().build();
-            }
-
-            if (!file.startsWith(uploadDir)) { // Compare Path objects directly
-                System.out.println("Forbidden due to path mismatch!");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-
-            Resource resource = new UrlResource(file.toUri());
-            String contentType = Files.probeContentType(file);
-            if (contentType == null) {
-                contentType = "application/octet-stream";
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .body(resource);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+    // REMOVE the getImage endpoint as you'll be serving directly from GCS
+    // @GetMapping("/uploads/{filename:.+}")
+    // public ResponseEntity<Resource> getImage(@PathVariable String filename) { ... }
 }
