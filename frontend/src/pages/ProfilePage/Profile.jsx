@@ -30,7 +30,7 @@ import './Profile.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 function formatSchoolId(value = "") {
     const digits = value.replace(/\D/g, '').slice(0, 9);

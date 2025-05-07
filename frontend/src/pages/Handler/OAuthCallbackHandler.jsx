@@ -3,7 +3,7 @@ import axios from 'axios';
 import { parseJwt } from './parseJwt';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 export default function OAuthCallbackHandler() {
     const navigate = useNavigate();

@@ -6,7 +6,7 @@ import busLogo from '/assets/eduwheels-logo.png';
 import backgroundImage from '/assets/background-image.png';
 import axios from 'axios';
 
-const API_BASE_URL = "https://it-342-edu-wheels.vercel.app/";
+const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 export default function Signup() {
     const [formData, setFormData] = useState({
@@ -105,7 +105,7 @@ export default function Signup() {
         const googleUser = response.profileObj;
 
         try {
-            const result = await axios.post("https://it-342-edu-wheels.vercel.app/users/google-login", googleUser);
+            const result = await axios.post(`${API_BASE_URL}/users/google-login`, googleUser);
 
             if (result.status === 200) {
                 if (result.data.message === "Google sign up successful. Please provide your school ID.") {

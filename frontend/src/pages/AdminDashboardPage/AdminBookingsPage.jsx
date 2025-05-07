@@ -41,7 +41,7 @@ const getAuthToken = () => {
     return localStorage.getItem('token'); // Replace with your actual token retrieval
 };
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'https://it342-eduwheels.onrender.com';
 const BOOKINGS_API = `${API_BASE_URL}/api/bookings`;
 const USERS_API = `${API_BASE_URL}/users`; // Assuming you have a users endpoint
 const VEHICLES_API = `${API_BASE_URL}/api/vehicles`; // Assuming you have a vehicles endpoint

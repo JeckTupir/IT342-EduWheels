@@ -14,7 +14,7 @@ import busLogo from '/assets/eduwheels-logo.png';
 import backgroundImage from '/assets/background-image.png';
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 export default function Login() {
     const [formData, setFormData] = useState({
