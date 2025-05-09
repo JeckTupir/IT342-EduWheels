@@ -66,6 +66,7 @@
             android:textColor="#734E4E"
             android:textStyle="bold"
             android:textSize="20sp"
+            android:backgroundTint="#E6C2C2"
             android:layout_marginTop="32dp"
             android:gravity="center" />
 
@@ -75,6 +76,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:textColor="#734E4E"
             android:gravity="center_horizontal"
             android:layout_marginTop="16dp"
             android:padding="8dp">

@@ -7,30 +7,42 @@
     android:background="#FFF5F5">
 
     <!-- Header -->
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#734E4E"
-        android:padding="8dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:padding="8dp">
 
         <ImageView
             android:id="@+id/headerLogo"
             android:layout_width="80dp"
             android:layout_height="48dp"
-            android:src="@drawable/edufour" />
+            android:src="@drawable/edufour"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"/>
+
+        <TextView
+            android:id="@+id/headerUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello, User"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_toEndOf="@id/headerLogo"
+            android:layout_marginStart="12dp"
+            android:layout_centerVertical="true" />
 
         <ImageView
             android:id="@+id/headerMenu"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_gravity="end"
-            android:layout_marginLeft="270dp"
-            android:contentDescription="Menu Icon"
-            android:src="@drawable/men" />
-    </LinearLayout>
+            android:src="@drawable/men"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Menu Icon" />
+    </RelativeLayout>
 
     <!-- Content Area -->
 

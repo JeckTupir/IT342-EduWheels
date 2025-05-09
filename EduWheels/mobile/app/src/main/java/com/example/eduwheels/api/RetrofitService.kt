@@ -2,6 +2,7 @@ package com.example.eduwheels.api
 
 import com.example.eduwheels.models.User
 import com.example.eduwheels.models.Vehicle
+import com.example.eduwheels.user.UpdateProfileRequest
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -19,11 +20,22 @@ interface RetrofitService {
     @GET("/users/{id}")
     fun getUserById(@Path("id") id: Long): Call<User>
 
-    @PUT("/users/{id}")
+    @PUT("users/{id}")
     fun updateUser(
         @Path("id") id: Long,
-        @Body updatedUser: User
+        @Body updateRequest: UpdateProfileRequest
     ): Call<User>
+
+
+    @GET("/users/me")
+    fun getCurrentUser(
+        @Header("Authorization") token: String
+    ): Call<Map<String, @JvmSuppressWildcards Any>>
+
+    @PUT("users/me")
+    fun updateUser(@Body updatedData: Map<String, String>): Call<Map<String, Any>>
+
+
 
     @GET("/api/vehicles") // This matches your VehicleController
     fun getAllVehicles(): Call<List<Vehicle.Vehicle>>

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import com.example.eduwheels.R
 import com.example.eduwheels.user.LogIn
@@ -12,12 +13,22 @@ import com.example.eduwheels.user.UserProfile
 import com.example.eduwheels.util.SessionManager
 import com.example.eduwheels.vehicle.Vehicles
 
-
 open class BaseActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_base)
+
+        val sessionManager = SessionManager(this)
+        val firstName = sessionManager.getFirstName()
+        val lastName = sessionManager.getLastName()
+
+        val headerUserName = findViewById<TextView>(R.id.headerUserName)
+        if (firstName.isNotEmpty() || lastName.isNotEmpty()) {
+            headerUserName.text = "Hello, $firstName $lastName"
+        } else {
+            headerUserName.text = "Hello, User"
+        }
 
         val menuIcon = findViewById<ImageView>(R.id.headerMenu)
         menuIcon.setOnClickListener { view ->
@@ -47,9 +58,7 @@ open class BaseActivity : Activity() {
                         true
                     }
                     R.id.menu_logout -> {
-                        val sessionManager = SessionManager(this)
                         sessionManager.clearSession()
-
                         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this, LogIn::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

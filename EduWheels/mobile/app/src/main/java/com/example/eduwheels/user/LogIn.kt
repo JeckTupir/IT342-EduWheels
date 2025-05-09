@@ -3,15 +3,23 @@ package com.example.eduwheels.user
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.widget.*
 import com.example.eduwheels.DashBoard
 import com.example.eduwheels.R
+import com.example.eduwheels.api.RetrofitClient
+import com.example.eduwheels.api.RetrofitService
 import com.example.eduwheels.util.SessionManager
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import kotlinx.coroutines.*
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -25,10 +33,37 @@ class LogIn : Activity() {
         super.onCreate(savedInstanceState)
 
         val sessionManager = SessionManager(this)
+
         if (sessionManager.isLoggedIn()) {
-            startActivity(Intent(this, DashBoard::class.java))
-            finish()
-            return
+            val token = sessionManager.getToken()
+            val authHeader = "Bearer $token"
+
+            val retrofitService = RetrofitClient.getInstance().create(RetrofitService::class.java)
+
+            retrofitService.getCurrentUser(authHeader)
+                .enqueue(object : Callback<Map<String, @JvmSuppressWildcards Any>> {
+                    override fun onResponse(
+                        call: Call<Map<String, @JvmSuppressWildcards Any>>,
+                        response: Response<Map<String, @JvmSuppressWildcards Any>>
+                    ) {
+                        if (response.isSuccessful && response.body() != null) {
+                            sessionManager.saveUserFromResponse(response.body()!!, token!!)
+                            startActivity(Intent(this@LogIn, DashBoard::class.java))
+                            finish()
+                        } else {
+                            Log.e("LoginCheck", "Invalid token or failed to fetch user")
+                            sessionManager.clearSession()
+                        }
+                    }
+
+                    override fun onFailure(
+                        call: Call<Map<String, @JvmSuppressWildcards Any>>,
+                        t: Throwable
+                    ) {
+                        Log.e("LoginCheck", "Error fetching user from /me: ${t.message}")
+                        sessionManager.clearSession()
+                    }
+                })
         }
 
         setContentView(R.layout.activity_log_in)
@@ -100,7 +135,7 @@ class LogIn : Activity() {
         CoroutineScope(Dispatchers.IO).launch {
             var connection: HttpURLConnection? = null
             try {
-                val url = URL("http://192.168.40.148:8080/users/login")
+                val url = URL("http://192.168.42.144:8080/users/login")
                 connection = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")
@@ -118,26 +153,53 @@ class LogIn : Activity() {
                     connection.errorStream?.bufferedReader()?.readText() ?: "No error body"
                 }
 
+                Log.d("LoginResponse", "Code: $responseCode\nBody: $responseText")
+
                 runOnUiThread {
                     if (responseCode == HttpURLConnection.HTTP_OK) {
                         try {
                             val responseJson = JSONObject(responseText)
+
+                            if (!responseJson.has("user") || !responseJson.has("token")) {
+                                Toast.makeText(this@LogIn, "Invalid response format", Toast.LENGTH_LONG).show()
+                                return@runOnUiThread
+                            }
+
                             val userJson = responseJson.getJSONObject("user")
                             val token = responseJson.getString("token")
 
                             val sessionManager = SessionManager(this@LogIn)
                             sessionManager.saveUserSession(
-                                userId = userJson.getLong("id"),
-                                schoolId = userJson.getString("schoolid"),
-                                email = userJson.getString("email"),
-                                name = userJson.getString("name"),
-                                token = token
+                                userId = userJson.optLong("id", -1),
+                                schoolId = userJson.optString("schoolid", ""),
+                                email = userJson.optString("email", ""),
+                                name = "${userJson.optString("firstName", "")} ${userJson.optString("lastName", "")}",
+                                firstName = userJson.optString("firstName", ""),
+                                lastName = userJson.optString("lastName", ""),
+                                token = token,
+                                role = userJson.optString("role", "")
                             )
 
-                            Toast.makeText(this@LogIn, "Welcome ${userJson.getString("name")}!", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this@LogIn, DashBoard::class.java))
-                            finish()
+                            Toast.makeText(this@LogIn, "Welcome ${userJson.optString("firstName", "")}!", Toast.LENGTH_SHORT).show()
+
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                val intent = Intent(this@LogIn, DashBoard::class.java)
+                                intent.putExtra("user_id", userJson.optLong("id", -1))
+                                intent.putExtra("schoolid", userJson.optString("schoolid", ""))
+                                intent.putExtra("email", userJson.optString("email", ""))
+                                intent.putExtra("username", userJson.optString("username", ""))
+                                intent.putExtra("firstName", userJson.optString("firstName", ""))
+                                intent.putExtra("lastName", userJson.optString("lastName", ""))
+                                intent.putExtra("role", userJson.optString("role", ""))
+                                intent.putExtra("token", token)
+
+                                startActivity(intent)
+                                finish()
+                            }, 200)
+
+
                         } catch (e: Exception) {
+                            Log.e("LoginParsing", "Parsing error: ${e.message}")
                             Toast.makeText(this@LogIn, "Error reading user info", Toast.LENGTH_LONG).show()
                         }
                     } else {
@@ -155,10 +217,11 @@ class LogIn : Activity() {
         }
     }
 
+
     private fun handleGoogleLogin(idToken: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.40.148:8080/users/oauth2/google/login")
+                val url = URL("http://192.168.42.144:8080/users/oauth2/google/login")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")
@@ -186,8 +249,11 @@ class LogIn : Activity() {
                             userId = userJson.getLong("id"),
                             schoolId = userJson.getString("schoolid"),
                             email = userJson.getString("email"),
-                            name = userJson.getString("name"),
-                            token = token
+                            name = "${userJson.getString("firstName")} ${userJson.getString("lastName")}",
+                            firstName = userJson.getString("firstName"),
+                            lastName = userJson.getString("lastName"),
+                            token = token,
+                            role = userJson.getString("role")
                         )
 
                         Toast.makeText(this@LogIn, "Google login successful!", Toast.LENGTH_SHORT).show()

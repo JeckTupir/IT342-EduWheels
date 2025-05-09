@@ -39,7 +39,7 @@ class Vehicles : BaseActivity() {
             .build()
 
         retrofitService = Retrofit.Builder()
-            .baseUrl("http://192.168.74.208:8080/")  // ✅ Your local server IP
+            .baseUrl("http://192.168.42.239:8080/")  // ✅ Your local server IP
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

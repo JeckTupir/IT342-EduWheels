@@ -10,81 +10,88 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-
-        <!-- Form Inputs -->
         <EditText
+            android:id="@+id/firstNameInput"
             android:layout_marginTop="70dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint=""
-            android:id="@+id/firstNameInput"
+            android:hint="First Name"
             android:background="@android:color/white"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
 
         <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint=""
             android:id="@+id/lastNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Last Name"
             android:background="@android:color/white"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
 
         <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint=""
             android:id="@+id/schoolIdInput"
-            android:inputType="phone"
-            android:background="@android:color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="School ID"
+            android:enabled="false"
+            android:inputType="text"
+            android:background="@android:color/darker_gray"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
 
         <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint=""
             android:id="@+id/usernameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username"
             android:background="@android:color/white"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
 
-        <!-- Old Password -->
+
+
+        <!-- Role (read-only) -->
         <EditText
+            android:id="@+id/roleInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Old Password"
-            android:id="@+id/oldPasswordInput"
+            android:hint="Role"
+            android:enabled="false"
+            android:background="@android:color/darker_gray"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/currentPasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Current Password"
             android:inputType="textPassword"
             android:background="@android:color/white"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
 
-        <!-- New Password -->
         <EditText
+            android:id="@+id/newPasswordInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="New Password"
-            android:id="@+id/newPasswordInput"
             android:inputType="textPassword"
             android:background="@android:color/white"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
 
-        <!-- Re-enter New Password -->
         <EditText
+            android:id="@+id/reenterPasswordInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Re-enter Password"
-            android:id="@+id/reenterPasswordInput"
             android:inputType="textPassword"
             android:background="@android:color/white"
             android:padding="12dp"
             android:layout_marginBottom="24dp" />
 
-
-        <!-- Update Button -->
         <Button
             android:id="@+id/btnUpdateProfile"
             android:layout_width="match_parent"
@@ -95,8 +102,7 @@
             android:elevation="8dp"
             android:padding="16dp"
             android:layout_marginBottom="16dp"
-            android:layout_gravity="center_horizontal"
-             />
+            android:layout_gravity="center_horizontal" />
 
     </LinearLayout>
 </ScrollView>

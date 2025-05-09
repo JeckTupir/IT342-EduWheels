@@ -14,11 +14,6 @@ class DashBoard : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sessionManager = SessionManager(this)
-        if (!sessionManager.isLoggedIn()) {
-            startActivity(Intent(this, LogIn::class.java))
-            finish()
-        }
 
         setContentLayout(R.layout.activity_dash_board) // 👈 inject your page-specific layout here
 

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
 import android.widget.*
 import com.example.eduwheels.R
 import kotlinx.coroutines.*
@@ -29,13 +30,19 @@ class Register : Activity() {
         val username = findViewById<EditText>(R.id.username)
         val password = findViewById<EditText>(R.id.password)
         val email = findViewById<EditText>(R.id.email)
+        val roleSpinner = findViewById<Spinner>(R.id.roleSpinner)
 
         val registerButton = findViewById<Button>(R.id.registerButton)
         val loginLink = findViewById<TextView>(R.id.loginRedirectText)
 
+        // Populate roles (you can customize this list)
+        val roles = listOf("Student", "Teacher")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roles)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        roleSpinner.adapter = adapter
+
         registerButton.isEnabled = false
 
-        // Enable button only when all fields are filled
         val fields = listOf(firstName, lastName, repass, schoolID, username, password, email)
 
         fun validateFields() {
@@ -53,6 +60,7 @@ class Register : Activity() {
         registerButton.setOnClickListener {
             val uname = username.text.toString()
             val mail = email.text.toString()
+            val selectedRole = roleSpinner.selectedItem.toString()
 
             when {
                 existingUsernames.contains(uname) -> {
@@ -71,7 +79,8 @@ class Register : Activity() {
                         firstName.text.toString(),
                         lastName.text.toString(),
                         schoolID.text.toString(),
-                        mail
+                        mail,
+                        selectedRole
                     )
                 }
             }
@@ -82,19 +91,17 @@ class Register : Activity() {
             finish()
         }
 
-        // Fetch users when screen starts
         fetchExistingUsers()
     }
 
     private fun fetchExistingUsers() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.40.148:8080/users")
+                val url = URL("http://192.168.42.144:8080/users")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
 
-                val responseCode = connection.responseCode
-                if (responseCode == HttpURLConnection.HTTP_OK) {
+                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
                     val response = connection.inputStream.bufferedReader().readText()
                     val usersArray = JSONArray(response)
 
@@ -118,7 +125,8 @@ class Register : Activity() {
         firstName: String,
         lastName: String,
         schoolID: String,
-        email: String
+        email: String,
+        role: String
     ) {
         val userJson = JSONObject().apply {
             put("username", username)
@@ -127,11 +135,12 @@ class Register : Activity() {
             put("lastName", lastName)
             put("schoolid", schoolID)
             put("email", email)
+            put("role", role)
         }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.40.148:8080/users/signup")
+                val url = URL("http://192.168.42.144:8080/users/signup")
                 val connection = url.openConnection() as HttpURLConnection
 
                 connection.requestMethod = "POST"
@@ -142,10 +151,7 @@ class Register : Activity() {
                     writer.write(userJson.toString())
                 }
 
-                val responseCode = connection.responseCode
-
-                if (responseCode == HttpURLConnection.HTTP_CREATED || responseCode == HttpURLConnection.HTTP_OK) {
-                    // ✅ Only navigate AFTER success
+                if (connection.responseCode == HttpURLConnection.HTTP_CREATED || connection.responseCode == HttpURLConnection.HTTP_OK) {
                     runOnUiThread {
                         Toast.makeText(this@Register, "Registered successfully!", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this@Register, LogIn::class.java)
