@@ -56,6 +56,7 @@ export default function Profile() {
     const [userBookings, setUserBookings] = useState([]);
     const [userBookingsLoading, setUserBookingsLoading] = useState(true);
     const [userBookingsError, setUserBookingsError] = useState(null);
+    const [reviewedBookings, setReviewedBookings] = useState(new Set()); // To track reviewed booking IDs
 
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [reviewTargetBooking, setReviewTargetBooking] = useState(null);
@@ -118,7 +119,7 @@ export default function Profile() {
 
     useEffect(() => {
         if (userData) {
-            const fetchUserBookings = async () => {
+            const fetchUserBookingsWithReviewStatus = async () => {
                 setUserBookingsLoading(true);
                 setUserBookingsError(null);
                 const token = localStorage.getItem('token');
@@ -134,7 +135,23 @@ export default function Profile() {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     setUserBookings(response.data);
+
+                    // After fetching bookings, check for existing reviews
+                    const reviewed = new Set();
+                    for (const booking of response.data) {
+                        if (booking.status === 'Done') {
+                            const reviewExistsResponse = await axios.get(
+                                `<span class="math-inline">\{API\_BASE\_URL\}/api/reviews/booking/</span>{booking.bookingID}/exists`,
+                                { headers: { Authorization: `Bearer ${token}` } }
+                            );
+                            if (reviewExistsResponse.data) {
+                                reviewed.add(booking.bookingID);
+                            }
+                        }
+                    }
+                    setReviewedBookings(reviewed);
                     setUserBookingsLoading(false);
+
                 } catch (err) {
                     console.error("Error fetching user bookings with review status:", err.response || err);
                     setUserBookingsError("Failed to load booking history.");
@@ -142,7 +159,7 @@ export default function Profile() {
                 }
             };
 
-            fetchUserBookings();
+            fetchUserBookingsWithReviewStatus();
         }
     }, [userData]);
 
@@ -250,7 +267,8 @@ export default function Profile() {
             comment: reviewText,
             booking: {
                 bookingID: reviewTargetBooking.bookingID
-            }
+            },
+            // The backend will handle setting the user and reviewDate
         };
 
         try {
@@ -262,11 +280,12 @@ export default function Profile() {
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
             handleCloseReviewModal();
+            setReviewedBookings(new Set(reviewedBookings.add(reviewTargetBooking.bookingID))); // Update reviewed set
 
             setUserBookings(prevBookings =>
                 prevBookings.map(b =>
                     b.bookingID === reviewTargetBooking.bookingID
-                        ? { ...b, hasReviewed: true }
+                        ? { ...b } // No need to add hasReviewed here, backend handles existence
                         : b
                 )
             );
@@ -482,7 +501,7 @@ export default function Profile() {
                                                 </Typography>
                                             </TableCell>
                                             <TableCell className="table-cell">
-                                                {booking.status === 'Done' && !booking.hasReviewed && (
+                                                {booking.status === 'Done' && !reviewedBookings.has(booking.bookingID) && (
                                                     <Button
                                                         variant="outlined"
                                                         size="small"
@@ -493,7 +512,7 @@ export default function Profile() {
                                                         Review
                                                     </Button>
                                                 )}
-                                                {booking.hasReviewed && (
+                                                {reviewedBookings.has(booking.bookingID) && (
                                                     <Typography variant="caption" color="textSecondary">Reviewed</Typography>
                                                 )}
                                             </TableCell>
