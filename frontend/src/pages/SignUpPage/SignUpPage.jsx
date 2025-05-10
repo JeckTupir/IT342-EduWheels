@@ -5,6 +5,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import busLogo from '/assets/eduwheels-logo.png';
 import backgroundImage from '/assets/background-image.png';
 import axios from 'axios';
+import { FcGoogle } from 'react-icons/fc';
 
 const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
@@ -101,20 +102,8 @@ export default function Signup() {
         window.location.href = '/';
     };
 
-    const handleGoogleSignup = async (response) => {
-        const googleUser = response.profileObj;
-
-        try {
-            const result = await axios.post(`${API_BASE_URL}/users/google-login`, googleUser);
-
-            if (result.status === 200) {
-                if (result.data.message === "Google sign up successful. Please provide your school ID.") {
-                    window.location.href = `/complete-profile?userId=${result.data.user.id}`;
-                }
-            }
-        } catch (error) {
-            console.error("Google login error", error);
-        }
+    const handleGoogleSignup = () => {
+        window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
     };
 
 
@@ -186,14 +175,30 @@ export default function Signup() {
                         </Button>
                     </form>
 
+                    <Divider style={{ margin: '20px 0', color: '#ffffff' }}>OR</Divider>
+
+                    {/* Modified Google Signup Button */}
                     <Button
-                        variant="outlined"
-                        color="primary"
-                        fullWidth
                         onClick={handleGoogleSignup}
-                        style={{ marginTop: '1rem', backgroundColor: '#4285F4', color: 'white' }}
+                        variant="contained"
+                        fullWidth
+                        style={{
+                            marginTop: '1rem',
+                            backgroundColor: '#ffffff',
+                            color: '#444',
+                            padding: '10px 20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textTransform: 'none',
+                            boxShadow: '0 2px 4px 0 rgba(0,0,0,0.25)',
+                            marginBottom: '10px'
+                        }}
                     >
-                        Sign Up with Google
+                        <FcGoogle size={24} />
+                        <span style={{ marginLeft: 10, fontWeight: 500 }}>
+                            Sign Up with Google
+                        </span>
                     </Button>
 
                     <Typography className="login-switch" style={{ textAlign: 'center', color: '#ffffff' }}>
