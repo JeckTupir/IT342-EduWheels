@@ -532,7 +532,6 @@ export default function AdminBookingsPage() {
                             <MenuItem value="Rejected">Rejected</MenuItem>
                             <MenuItem value="Going">Going</MenuItem>
                             <MenuItem value="Done">Done</MenuItem>
-                            <MenuItem value="Accepted">Accepted</MenuItem>
                             <MenuItem value="Canceled">Canceled</MenuItem>
                         </Select>
                     </FormControl>
