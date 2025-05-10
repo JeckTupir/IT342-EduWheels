@@ -262,15 +262,15 @@ export default function Profile() {
             setSnackbarMessage('Review submitted successfully!');
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
-            // handleCloseReviewModal();
+            handleCloseReviewModal();
 
-            setUserBookings(prevBookings =>
-                prevBookings.map(b =>
-                    b.bookingID === reviewTargetBooking.bookingID
-                        ? { ...b, hasReviewed: true }
-                        : b
-                )
-            );
+            // setUserBookings(prevBookings =>
+            //     prevBookings.map(b =>
+            //         b.bookingID === reviewTargetBooking.bookingID
+            //             ? { ...b, hasReviewed: true }
+            //             : b
+            //     )
+            // );
 
         } catch (err) {
             console.error("Review submission failed:", err.response || err);
