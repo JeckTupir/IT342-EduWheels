@@ -262,7 +262,7 @@ export default function Profile() {
             setSnackbarMessage('Review submitted successfully!');
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
-            handleCloseReviewModal();
+            // handleCloseReviewModal();
 
             setUserBookings(prevBookings =>
                 prevBookings.map(b =>
