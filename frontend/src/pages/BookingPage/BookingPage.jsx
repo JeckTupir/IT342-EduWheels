@@ -43,9 +43,7 @@ export default function BookingPage() {
 
     const getImageUrl = (path) => {
         if (!path) return null;
-        const filename = path.replace(/^\/?uploads\//, '');
-        if (!filename || filename.includes('/')) return null;
-        return `https://it342-eduwheels.onrender.com/api/vehicles/uploads/${filename}`;
+        return path; // The 'path' from your backend will already be the full GCS URL
     };
 
     useEffect(() => {
