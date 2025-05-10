@@ -35,7 +35,7 @@ export default function HeaderLoggedIn() {
 
                 {/* 🛡️ Only show Admin Dashboard if userRole is Admin */}
                 {userRole === 'Admin' && (
-                    <Button color="inherit" component={Link} to="/admin">
+                    <Button color="inherit" component={Link} to="/admin/dashboard">
                         Admin Dashboard
                     </Button>
                 )}

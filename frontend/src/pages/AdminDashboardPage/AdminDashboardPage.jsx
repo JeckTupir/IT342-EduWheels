@@ -1,136 +1,148 @@
-import React from "react";
-import { Box, Typography, AppBar, Toolbar, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText, Avatar, Divider } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import RateReviewIcon from '@mui/icons-material/RateReview';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import PersonIcon from '@mui/icons-material/Person';
-import LogoutIcon from '@mui/icons-material/Logout';
-import eduwheelsLogo from '/assets/bus-logo.png';
-import './AdminDashboardPage.css';
-import { Link, useNavigate, Outlet } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Box, Grid, Paper, Typography, List, ListItem, ListItemText, CircularProgress, Rating } from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import axios from 'axios';
 
-const drawerWidth = 240;
+const COLORS = ['#0088FE', '#FFBB28', '#FF8042'];
 
-export default function AdminDashboardPage() {
-    const [open, setOpen] = React.useState(false);
-    const navigate = useNavigate();
+export default function DashboardContent() {
+    const [bookings, setBookings] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleDrawerToggle = () => {
-        setOpen(!open);
-    };
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [bookingRes, reviewRes] = await Promise.all([
+                    axios.get('https://it342-eduwheels.onrender.com/api/bookings'),
+                    axios.get('https://it342-eduwheels.onrender.com/api/reviews')
+                ]);
+                setBookings(bookingRes.data);
+                setReviews(reviewRes.data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const handleLogout = () => {
-        // Implement your logout logic here
-        console.log("Logout clicked");
-        navigate('/login'); // Redirect to login page after logout
-    };
+        fetchData();
+    }, []);
 
-    const drawer = (
-        <div>
-            <Toolbar className="toolbar-logo">
-                <Avatar src={eduwheelsLogo} alt="EduWheels Logo" className="logo-admin" />
-                <Typography variant="h5" noWrap className="logo-text">
-                    EduWheels
-                </Typography>
-            </Toolbar>
-            <List>
-                <ListItem button component={Link} to="/admin/dashboard" className="nav-item">
-                    <ListItemIcon><DashboardIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
-                    <ListItemText primary="Dashboard" />
-                </ListItem>
-                <ListItem button component={Link} to="/admin/vehicles" className="nav-item">
-                    <ListItemIcon><DirectionsBusIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
-                    <ListItemText primary="Vehicles" />
-                </ListItem>
-                <ListItem button component={Link} to="/admin/bookings" className="nav-item">
-                    <ListItemIcon><CalendarTodayIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
-                    <ListItemText primary="Bookings" />
-                </ListItem>
-                <ListItem button component={Link} to="/admin/reviews" className="nav-item">
-                    <ListItemIcon><RateReviewIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
-                    <ListItemText primary="Reviews" />
-                </ListItem>
-                <ListItem button component={Link} to="/admin/users" className="nav-item">
-                    <ListItemIcon><PersonIcon sx={{ color: '#5A4040' }} className="nav-icon" /></ListItemIcon>
-                    <ListItemText primary="Users" />
-                </ListItem>
-            </List>
-            <Divider />
-            <List>
-                <ListItem button onClick={handleLogout} className="nav-item logout-button">
-                    <ListItemIcon><LogoutIcon className="nav-icon logout-icon" /></ListItemIcon>
-                    <ListItemText primary="Logout" />
-                </ListItem>
-            </List>
-        </div>
-    );
+    const bookingTrends = bookings.reduce((acc, booking) => {
+        const month = new Date(booking.startDate).toLocaleString('default', { month: 'short' });
+        const found = acc.find(item => item.name === month);
+        if (found) {
+            found.bookings += 1;
+        } else {
+            acc.push({ name: month, bookings: 1 });
+        }
+        return acc;
+    }, []);
+
+    const statusCounts = bookings.reduce((acc, booking) => {
+        acc[booking.status] = (acc[booking.status] || 0) + 1;
+        return acc;
+    }, {});
+
+    const pieData = Object.keys(statusCounts).map(key => ({ name: key, value: statusCounts[key] }));
+
+    const pendingRequests = bookings.filter(b => b.status.toLowerCase() === 'pending');
+
+    const latestReviews = [...reviews].sort((a, b) => new Date(b.reviewDate) - new Date(a.reviewDate)).slice(0, 5);
+
+    if (loading) {
+        return <CircularProgress />;
+    }
 
     return (
-        <Box sx={{ display: 'flex' }} className="admin-dashboard-page">
-            <AppBar
-                position="fixed"
-                sx={{
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    ml: { sm: `${drawerWidth}px` },
-                    backgroundColor: '#5A4040', // Matching top bar color
-                }}
-            >
-                <Toolbar>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        edge="start"
-                        onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { sm: 'none' } }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" noWrap component="div">
-                        Admin Dashboard
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <Box
-                component="nav"
-                sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-                aria-label="mailbox folders"
-            >
-                {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
-                <Drawer
-                    variant="temporary"
-                    open={open}
-                    onClose={handleDrawerToggle}
-                    ModalProps={{
-                        keepMounted: true, // Better open performance on mobile.
-                    }}
-                    sx={{
-                        display: { xs: 'block', sm: 'none' },
-                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                    }}
-                >
-                    {drawer}
-                </Drawer>
-                <Drawer
-                    variant="permanent"
-                    sx={{
-                        display: { xs: 'none', sm: 'block' },
-                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-                    }}
-                    open
-                >
-                    {drawer}
-                </Drawer>
-            </Box>
-            <Box
-                component="main"
-                sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
-            >
-                <Toolbar />
-                <Outlet /> {/* This is where the content of the specific admin page will be rendered */}
-            </Box>
+        <Box sx={{ flexGrow: 1 }}>
+            <Grid container spacing={3}>
+                <Grid item xs={12} md={8}>
+                    <Paper sx={{ p: 2, height: 360 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Booking Trends
+                        </Typography>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={bookingTrends}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line type="monotone" dataKey="bookings" stroke="#5A4040" activeDot={{ r: 8 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 2, height: 360 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Booking Status
+                        </Typography>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    label
+                                >
+                                    {pieData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 2, height: 360, overflow: 'auto' }}>
+                        <Typography variant="h6" gutterBottom>
+                            Pending Booking Requests
+                        </Typography>
+                        <List>
+                            {pendingRequests.map((request) => (
+                                <ListItem key={request.id} divider>
+                                    <ListItemText
+                                        primary={`Plate: ${request.plateNumber} | Pick-up: ${request.pickUp} | Drop-off: ${request.dropOff}`}
+                                        secondary={`Date: ${new Date(request.startDate).toLocaleDateString()} | Status: ${request.status}`}
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 2, height: 360, overflow: 'auto' }}>
+                        <Typography variant="h6" gutterBottom>
+                            Latest Reviews
+                        </Typography>
+                        <List>
+                            {latestReviews.map((review) => (
+                                <ListItem key={review.id} divider>
+                                    <ListItemText
+                                        primary={`User: ${review.user?.name || 'Anonymous'} | Booking: ${review.booking?.plateNumber || 'N/A'}`}
+                                        secondary={
+                                            <>
+                                                <Typography component="span" variant="body2" color="text.primary">
+                                                    {review.comment}
+                                                </Typography>
+                                                <br />
+                                                <Rating value={review.rating} readOnly size="small" />
+                                            </>
+                                        }
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+            </Grid>
         </Box>
     );
 }
