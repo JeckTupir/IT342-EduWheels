@@ -76,7 +76,7 @@ export default function Signup() {
             if (response.status === 201) {
                 setSuccess("Sign Up Successful! Redirecting to login...");
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    window.location.href = 'login';
                 }, 2000);
             } else {
                 setError(`Unexpected success status: ${response.status}`);
@@ -183,7 +183,7 @@ export default function Signup() {
                         variant="contained"
                         fullWidth
                         style={{
-                            marginTop: '1rem',
+                            marginTop: '0.5rem',
                             backgroundColor: '#ffffff',
                             color: '#444',
                             padding: '10px 20px',
@@ -202,7 +202,7 @@ export default function Signup() {
                     </Button>
 
                     <Typography className="login-switch" style={{ textAlign: 'center', color: '#ffffff' }}>
-                        Already have an account? <a href="/login" style={{ color: '#5A4040', textDecoration: 'none', fontWeight: 'bold' }}>Login</a>
+                        Already have an account? <a href="login" style={{ color: '#5A4040', textDecoration: 'none', fontWeight: 'bold' }}>Login</a>
                     </Typography>
                 </Box>
             </Box>

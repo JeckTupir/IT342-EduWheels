@@ -156,7 +156,7 @@ export default function Login() {
                     >
                         Don't have an account?{' '}
                         <a
-                            href="/eduwheels/signup"
+                            href="signup"
                             className="signup-text"
                             style={{
                                 color: '#ffffff',

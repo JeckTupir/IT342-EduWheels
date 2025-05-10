@@ -17,9 +17,6 @@ export default function HeaderLoggedIn() {
         }
     }, []);
 
-    const handleProfileClick = () => {
-        window.location.href = '/profile';
-    };
 
     const handleLogoutClick = () => {
         localStorage.clear();
@@ -43,7 +40,7 @@ export default function HeaderLoggedIn() {
                     </Button>
                 )}
 
-                <Button variant="outlined" color="primary" onClick={handleProfileClick}>
+                <Button variant="outlined" color="primary" component={Link} to="/profile">
                     <AccountCircleOutlinedIcon />
                     Profile
                 </Button>
