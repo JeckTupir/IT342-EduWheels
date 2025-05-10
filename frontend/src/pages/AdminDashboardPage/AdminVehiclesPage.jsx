@@ -75,11 +75,7 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
 // --- Helper Functions ---
 const getImageUrl = (path) => {
     if (!path) return null;
-    // Ensure path doesn't start with /uploads/ or just /
-    const filename = path.replace(/^\/?uploads\//, '');
-    // Basic check to prevent constructing invalid URLs if path is weird
-    if (!filename || filename.includes('/')) return null;
-    return `${VEHICLES_API}/uploads/${filename}`;
+    return path;
 };
 
 // --- Components ---
