@@ -13,6 +13,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import busLogo from '/assets/eduwheels-logo.png';
 import backgroundImage from '/assets/background-image.png';
 import axios from 'axios';
+import {Link} from "react-router-dom";
 
 const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
@@ -155,17 +156,8 @@ export default function Login() {
                         style={{ marginTop: '15px' }}
                     >
                         Don't have an account?{' '}
-                        <a
-                            href="signup"
-                            className="signup-text"
-                            style={{
-                                color: '#ffffff',
-                                textDecoration: 'none',
-                                fontWeight: 'bold'
-                            }}
-                        >
-                            Sign Up
-                        </a>
+                        <Button color="#ffffff" component={Link} to="/signup">Sign Up</Button>
+
                     </Typography>
                 </Box>
             </Box>

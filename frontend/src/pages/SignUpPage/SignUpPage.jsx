@@ -6,6 +6,7 @@ import busLogo from '/assets/eduwheels-logo.png';
 import backgroundImage from '/assets/background-image.png';
 import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
+import {Link} from "react-router-dom";
 
 const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
@@ -183,7 +184,6 @@ export default function Signup() {
                         variant="contained"
                         fullWidth
                         style={{
-                            marginTop: '0.5rem',
                             backgroundColor: '#ffffff',
                             color: '#444',
                             padding: '10px 20px',
@@ -202,7 +202,8 @@ export default function Signup() {
                     </Button>
 
                     <Typography className="login-switch" style={{ textAlign: 'center', color: '#ffffff' }}>
-                        Already have an account? <a href="login" style={{ color: '#5A4040', textDecoration: 'none', fontWeight: 'bold' }}>Login</a>
+                        Already have an account?
+                        <Button color="#5A4040" component={Link} to="/login">Login</Button>
                     </Typography>
                 </Box>
             </Box>
