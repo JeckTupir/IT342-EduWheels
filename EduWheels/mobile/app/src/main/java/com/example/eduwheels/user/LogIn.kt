@@ -135,7 +135,7 @@ class LogIn : Activity() {
         CoroutineScope(Dispatchers.IO).launch {
             var connection: HttpURLConnection? = null
             try {
-                val url = URL("http://192.168.42.144:8080/users/login")
+                val url = URL("https://it342-eduwheels.onrender.com/users/login")
                 connection = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")
@@ -221,7 +221,7 @@ class LogIn : Activity() {
     private fun handleGoogleLogin(idToken: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.42.144:8080/users/oauth2/google/login")
+                val url = URL("https://it342-eduwheels.onrender.com/users/oauth2/google/login")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")

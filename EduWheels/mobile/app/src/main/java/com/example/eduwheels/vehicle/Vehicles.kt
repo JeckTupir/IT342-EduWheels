@@ -1,6 +1,5 @@
 package com.example.eduwheels.vehicle
 
-import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,7 +38,7 @@ class Vehicles : BaseActivity() {
             .build()
 
         retrofitService = Retrofit.Builder()
-            .baseUrl("http://192.168.42.239:8080/")  // ✅ Your local server IP
+            .baseUrl("https://it342-eduwheels.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
@@ -49,11 +48,8 @@ class Vehicles : BaseActivity() {
     }
 
     private fun fetchVehicles() {
-        retrofitService.getAllVehicles().enqueue(object : Callback<List<Vehicle.Vehicle>> {
-            override fun onResponse(
-                call: Call<List<Vehicle.Vehicle>>,
-                response: Response<List<Vehicle.Vehicle>>
-            ) {
+        retrofitService.getAllVehicles().enqueue(object : Callback<List<Vehicle>> {
+            override fun onResponse(call: Call<List<Vehicle>>, response: Response<List<Vehicle>>) {
                 if (response.isSuccessful) {
                     val vehicleList = response.body() ?: emptyList()
                     recyclerView.adapter = VehicleAdapter(vehicleList)
@@ -62,7 +58,7 @@ class Vehicles : BaseActivity() {
                 }
             }
 
-            override fun onFailure(call: Call<List<Vehicle.Vehicle>>, t: Throwable) {
+            override fun onFailure(call: Call<List<Vehicle>>, t: Throwable) {
                 Toast.makeText(this@Vehicles, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })

@@ -97,7 +97,7 @@ class Register : Activity() {
     private fun fetchExistingUsers() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.42.144:8080/users")
+                val url = URL("https://it342-eduwheels.onrender.com/users")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
 
@@ -140,7 +140,7 @@ class Register : Activity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.42.144:8080/users/signup")
+                val url = URL("https://it342-eduwheels.onrender.com/users/signup")
                 val connection = url.openConnection() as HttpURLConnection
 
                 connection.requestMethod = "POST"

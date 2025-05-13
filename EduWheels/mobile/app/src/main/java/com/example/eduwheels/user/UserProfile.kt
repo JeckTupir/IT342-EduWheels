@@ -58,7 +58,7 @@ class UserProfile : BaseActivity() {
             .build()
 
         retrofitService = Retrofit.Builder()
-            .baseUrl("http://192.168.42.144:8080/")
+            .baseUrl("https://it342-eduwheels.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

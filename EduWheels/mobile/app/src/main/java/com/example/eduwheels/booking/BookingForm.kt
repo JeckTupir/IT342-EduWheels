@@ -1,16 +1,20 @@
 package com.example.eduwheels.booking
 
+import android.os.Build
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.*
+import androidx.annotation.RequiresApi
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.eduwheels.R
+import com.example.eduwheels.api.RetrofitClient
 import com.example.eduwheels.base.BaseActivity
-import org.json.JSONObject
-import java.io.DataOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
+import com.example.eduwheels.models.Vehicle
+import com.example.eduwheels.vehicle.VehicleCarouselAdapter
+import kotlinx.coroutines.*
+import retrofit2.HttpException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class BookingForm : BaseActivity() {
 
@@ -19,82 +23,147 @@ class BookingForm : BaseActivity() {
     private lateinit var etPassengerCount: EditText
     private lateinit var etBookingDate: EditText
     private lateinit var etReturnDate: EditText
-    private lateinit var etStatus: EditText
-    private lateinit var etUsername: EditText
     private lateinit var btnBook: Button
     private lateinit var tvResponse: TextView
+    private lateinit var vehicleCarousel: RecyclerView
+
+    private var selectedVehicle: Vehicle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_booking_form)
+        setContentLayout(R.layout.activity_booking_form)
 
         etPickup = findViewById(R.id.etPickup)
         etDropoff = findViewById(R.id.etDropoff)
         etPassengerCount = findViewById(R.id.etPassengerCount)
         etBookingDate = findViewById(R.id.etBookingDate)
         etReturnDate = findViewById(R.id.etReturnDate)
-        etStatus = EditText(this).apply { setText("Pending") } // Set default status
-        etUsername = EditText(this) // This can be pre-filled from session if needed
         btnBook = findViewById(R.id.btnBook)
         tvResponse = findViewById(R.id.tvResponse)
+        vehicleCarousel = findViewById(R.id.vehicleCarousel)
+
+        vehicleCarousel.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        etPassengerCount.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val count = etPassengerCount.text.toString().toIntOrNull() ?: 0
+                if (count > 0) fetchAndDisplayVehicles(count)
+            }
+        }
 
         btnBook.setOnClickListener {
-            createBooking()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                submitBookingToDatabase()
+            } else {
+                Toast.makeText(this, "Requires Android O or higher", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
-    private fun createBooking() {
-        val pickup = etPickup.text.toString().trim()
-        val dropoff = etDropoff.text.toString().trim()
-        val passengerCount = etPassengerCount.text.toString().trim()
-        val bookingDate = etBookingDate.text.toString().trim()
-        val returnDate = etReturnDate.text.toString().trim()
-        val status = etStatus.text.toString().ifEmpty { "Pending" }
-        val username = etUsername.text.toString().trim()
-
-        Thread {
+    private fun fetchAndDisplayVehicles(passengerCount: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://10.0.2.2:8080/api/bookings")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Content-Type", "application/json; utf-8")
-                connection.setRequestProperty("Accept", "application/json")
-                connection.doOutput = true
+                val response = RetrofitClient.bookingApi.getAllVehicles().execute()
+                if (response.isSuccessful) {
+                    val vehicles = response.body() ?: emptyList()
 
-                val jsonInput = JSONObject().apply {
-                    put("pickup", pickup)
-                    put("dropoff", dropoff)
-                    put("passengerCount", passengerCount.toIntOrNull() ?: 0)
-                    put("bookingDate", bookingDate)
-                    put("returnDate", returnDate)
-                    put("status", status)
-                    put("username", username)
-                }
+                    // Only keep vehicles with capacity >= passengerCount
+                    val filtered = vehicles.filter { it.capacity >= passengerCount }
 
-                val outputStream = DataOutputStream(connection.outputStream)
-                outputStream.writeBytes(jsonInput.toString())
-                outputStream.flush()
-                outputStream.close()
+                    withContext(Dispatchers.Main) {
+                        if (filtered.isNotEmpty()) {
+                            vehicleCarousel.adapter = VehicleCarouselAdapter(filtered) { vehicle: Vehicle ->
+                                selectedVehicle = vehicle
+                                Toast.makeText(
+                                    this@BookingForm,
+                                    "Selected: ${vehicle.vehicleName}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
 
-                val responseCode = connection.responseCode
-                val inputStream = if (responseCode in 200..299) {
-                    connection.inputStream
+                        } else {
+                            Toast.makeText(
+                                this@BookingForm,
+                                "No vehicles available for $passengerCount passengers",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            vehicleCarousel.adapter = null
+                            selectedVehicle = null
+                        }
+                    }
                 } else {
-                    connection.errorStream
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@BookingForm,
+                            "🚫 Failed: ${response.code()} ${response.message()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
-
-                val response = inputStream.bufferedReader().use { it.readText() }
-
-                runOnUiThread {
-                    tvResponse.text = "Server Response ($responseCode): $response"
-                }
-
             } catch (e: Exception) {
-                e.printStackTrace()
-                runOnUiThread {
-                    tvResponse.text = "Error: ${e.message}"
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@BookingForm,
+                        "Error loading vehicles: ${e.localizedMessage}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-        }.start()
+        }
     }
+
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun submitBookingToDatabase() {
+        val pickup = etPickup.text.toString().trim()
+        val dropoff = etDropoff.text.toString().trim()
+        val passengerCount = etPassengerCount.text.toString().toIntOrNull() ?: 0
+        val bookingDate = etBookingDate.text.toString().trim()
+        val returnDate = etReturnDate.text.toString().trim()
+
+        if (pickup.isEmpty() || dropoff.isEmpty() || bookingDate.isEmpty() || returnDate.isEmpty()) {
+            Toast.makeText(this, "Please complete all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val selected = selectedVehicle
+        if (selected == null) {
+            Toast.makeText(this, "Please select a vehicle", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        val startDate = LocalDateTime.parse(bookingDate, formatter)
+        val endDate = LocalDateTime.parse(returnDate, formatter)
+
+        val bookingRequest = BookingRequest(
+            startDate = startDate,
+            endDate = endDate,
+            numberOfPassengers = passengerCount,
+            status = "Pending",
+            plateNumber = selected.plateNumber,
+            vehicleAvailableSeats = selected.capacity,
+            pickUp = pickup,
+            dropOff = dropoff
+        )
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.bookingApi.createBooking(bookingRequest).execute()
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        tvResponse.text = "🎉 Booking successful!"
+                    } else {
+                        tvResponse.text = "❌ Failed: ${response.code()} ${response.message()}"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    tvResponse.text = "🚫 Error: ${e.localizedMessage}"
+                }
+            }
+        }
+    }
+
 }

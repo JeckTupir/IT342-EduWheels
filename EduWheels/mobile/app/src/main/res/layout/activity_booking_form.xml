@@ -11,7 +11,6 @@
         android:padding="24dp"
         android:gravity="center_horizontal">
 
-        <!-- Booking Info Title -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -21,105 +20,80 @@
             android:textColor="#4B1F1F"
             android:layout_marginTop="16dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Please select your booking details"
-            android:textSize="14sp"
-            android:textColor="#7D4F4F"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Pick-Up -->
         <EditText
             android:id="@+id/etPickup"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Select Pick-up Point"
+            android:hint="Pick-up Location"
             android:background="@drawable/rounded_input"
             android:padding="12dp"
             android:inputType="text" />
 
-        <!-- Pick-Up Time -->
-        <EditText
-            android:id="@+id/etBookingDate"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="Pick-up Time e.g 7:30 AM"
-            android:background="@drawable/rounded_input"
-            android:padding="12dp"
-            android:layout_marginTop="12dp"
-            android:inputType="time" />
-
-        <!-- Drop-Off -->
         <EditText
             android:id="@+id/etDropoff"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Select Drop-off Point"
+            android:hint="Drop-off Location"
             android:background="@drawable/rounded_input"
             android:padding="12dp"
             android:layout_marginTop="12dp"
             android:inputType="text" />
 
-        <!-- Drop-Off Time -->
+        <EditText
+            android:id="@+id/etBookingDate"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Pick-up DateTime (yyyy-MM-ddTHH:mm:ss)"
+            android:background="@drawable/rounded_input"
+            android:padding="12dp"
+            android:layout_marginTop="12dp" />
+
         <EditText
             android:id="@+id/etReturnDate"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Drop-off Time e.g 7:30 AM"
+            android:hint="Drop-off DateTime (yyyy-MM-ddTHH:mm:ss)"
             android:background="@drawable/rounded_input"
             android:padding="12dp"
-            android:layout_marginTop="12dp"
-            android:inputType="time" />
+            android:layout_marginTop="12dp" />
 
-        <!-- Passenger Count -->
         <EditText
             android:id="@+id/etPassengerCount"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="No. Passengers"
+            android:hint="Number of Passengers"
             android:background="@drawable/rounded_input"
             android:padding="12dp"
             android:layout_marginTop="12dp"
             android:inputType="number" />
 
-        <!-- Vehicle Recommendation (Static Placeholder) -->
         <TextView
+            android:id="@+id/tvVehicleTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Recommendation"
+            android:text="Suggested Vehicles"
             android:textColor="#4B1F1F"
-            android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            android:layout_gravity="center" />
+            android:layout_marginTop="24dp" />
 
-        <!-- "Check our Garage" Button -->
-        <Button
-            android:id="@+id/btnGarage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Check our Garage"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="#D59DAA"
-            android:textColor="#FFFFFF"
-            android:paddingLeft="24dp"
-            android:paddingRight="24dp" />
+        <!-- Carousel of filtered vehicles -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/vehicleCarousel"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal" />
 
-        <!-- "Book Now" Button -->
         <Button
             android:id="@+id/btnBook"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Book Now"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
             android:layout_marginTop="20dp"
-            android:layout_marginBottom="30dp"
-            android:padding="12dp"
-            android:backgroundTint="#D59DAA" />
+            android:backgroundTint="#D59DAA"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false" />
 
-        <!-- Server Response -->
         <TextView
             android:id="@+id/tvResponse"
             android:layout_width="match_parent"
@@ -127,6 +101,5 @@
             android:textColor="#4B1F1F"
             android:textSize="14sp"
             android:layout_marginTop="12dp" />
-
     </LinearLayout>
 </ScrollView>

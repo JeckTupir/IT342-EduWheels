@@ -9,4 +9,14 @@
         <item>Need Help?</item>
     </string-array>
 
+    <string-array name="booking_status_array">
+        <item>Pending</item>
+        <item>Approved</item>
+        <item>Rejected</item>
+        <item>Going</item>
+        <item>Done</item>
+        <item>Canceled</item>
+    </string-array>
+
+
 </resources>

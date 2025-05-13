@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.eduwheels.R
 import com.example.eduwheels.user.LogIn
 import com.example.eduwheels.user.UserProfile

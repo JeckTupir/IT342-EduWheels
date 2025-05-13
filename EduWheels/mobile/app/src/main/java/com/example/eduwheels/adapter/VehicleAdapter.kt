@@ -12,7 +12,7 @@ import com.example.eduwheels.R
 import com.example.eduwheels.models.Vehicle
 import com.example.eduwheels.vehicle.VehicleDetails
 
-class VehicleAdapter(private val vehicles: List<Vehicle.Vehicle>) :
+class VehicleAdapter(private val vehicles: List<Vehicle>) :
     RecyclerView.Adapter<VehicleAdapter.VehicleViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VehicleViewHolder {
@@ -21,32 +21,32 @@ class VehicleAdapter(private val vehicles: List<Vehicle.Vehicle>) :
     }
 
     override fun onBindViewHolder(holder: VehicleViewHolder, position: Int) {
-        val vehicle = vehicles[position]
-        holder.bind(vehicle)
+        holder.bind(vehicles[position])
     }
 
     override fun getItemCount(): Int = vehicles.size
 
     class VehicleViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        fun bind(vehicle: Vehicle.Vehicle) {
-            val vehicleType = itemView.findViewById<TextView>(R.id.vehicleType)
-            val vehicleName = itemView.findViewById<TextView>(R.id.vehicleName)
-            val capacity = itemView.findViewById<TextView>(R.id.capacity)
-            val plateNumber = itemView.findViewById<TextView>(R.id.plateNumber)
-            val status = itemView.findViewById<TextView>(R.id.status)
-            val busImage = itemView.findViewById<ImageView>(R.id.busImage) // Correct ID
-            val bookButton = itemView.findViewById<Button>(R.id.bookbtn)
+        private val vehicleType = view.findViewById<TextView>(R.id.vehicleType)
+        private val vehicleName = view.findViewById<TextView>(R.id.vehicleName)
+        private val capacity = view.findViewById<TextView>(R.id.capacity)
+        private val plateNumber = view.findViewById<TextView>(R.id.plateNumber)
+        private val status = view.findViewById<TextView>(R.id.status)
+        private val busImage = view.findViewById<ImageView>(R.id.busImage)
+        private val bookButton = view.findViewById<Button>(R.id.bookbtn)
 
+        fun bind(vehicle: Vehicle) {
             vehicleType.text = vehicle.type
             vehicleName.text = vehicle.vehicleName
             capacity.text = "Capacity: ${vehicle.capacity}"
             plateNumber.text = "Plate Number: ${vehicle.plateNumber}"
             status.text = "Status: ${vehicle.status}"
 
-            if (!vehicle.photoPath.isNullOrEmpty()) {
-                val fullImageUrl = "http://192.168.74.208:8080/api/vehicles/uploads/${vehicle.photoPath}"
-                Glide.with(itemView.context)
-                    .load(fullImageUrl)
+            val context = itemView.context
+            if (!vehicle.photoPath.isNullOrBlank()) {
+                val imageUrl = "https://it342-eduwheels.onrender.com/api/vehicles/uploads/${vehicle.photoPath}"
+                Glide.with(context)
+                    .load(imageUrl)
                     .placeholder(R.drawable.bus)
                     .into(busImage)
             } else {
@@ -54,7 +54,6 @@ class VehicleAdapter(private val vehicles: List<Vehicle.Vehicle>) :
             }
 
             bookButton.setOnClickListener {
-                val context = itemView.context
                 val intent = Intent(context, VehicleDetails::class.java).apply {
                     putExtra("vehicleType", vehicle.type)
                     putExtra("vehicleName", vehicle.vehicleName)
@@ -63,10 +62,7 @@ class VehicleAdapter(private val vehicles: List<Vehicle.Vehicle>) :
                     putExtra("status", vehicle.status)
                 }
                 context.startActivity(intent)
-
-                if (context is Activity) {
-                    context.finish()
-                }
+                if (context is Activity) context.finish()
             }
         }
     }

@@ -4,7 +4,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.42.144:8080" // <- Update this
+
+    private const val BASE_URL = "https://it342-eduwheels.onrender.com/"
+    // Update if needed
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
@@ -13,5 +15,11 @@ object RetrofitClient {
             .build()
     }
 
+    // Direct access to Retrofit instance
     fun getInstance(): Retrofit = retrofit
+
+    // Interface binding for API
+    val bookingApi: RetrofitService by lazy {
+        retrofit.create(RetrofitService::class.java)
+    }
 }
