@@ -47,7 +47,9 @@ class LogIn : Activity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.74.208:8080/users/login")
+                // For Android Emulator, use 10.0.2.2 to access host machine's localhost
+                // For Physical Device, replace with your computer's IP address
+                val url = URL("http://10.0.2.2:8080/users/login")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Content-Type", "application/json")

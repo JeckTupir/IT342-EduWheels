@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Button, Box, Typography, Container, Alert, CircularProgress } from '@mui/material';
 import axios from 'axios';
 
-const API_BASE_URL = "https://it342-eduwheels.onrender.com";
+// Local development
+const API_BASE_URL = "http://localhost:8080";
+
+// Production
+// const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 export default function CompleteProfilePage() {
     const [schoolId, setSchoolId] = useState('');

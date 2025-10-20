@@ -37,8 +37,9 @@ class Vehicles : Activity() {
             .addInterceptor(logging)
             .build()
 
+        // For Android Emulator, use 10.0.2.2 to access host machine's localhost
         retrofitService = Retrofit.Builder()
-            .baseUrl("http://192.168.74.208:8080/")  // ✅ Your local server IP
+            .baseUrl("http://10.0.2.2:8080/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

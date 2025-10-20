@@ -16,6 +16,7 @@
         <option value="JSX File" />
         <option value="Interface" />
         <option value="Class" />
+        <option value="HTTP Public Environment File" />
       </list>
     </option>
   </component>
@@ -46,31 +47,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Node.js.App.jsx.executor&quot;: &quot;Run&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.EduWheelsApplication.executor&quot;: &quot;Run&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/L22X07W37/IT342-BCD&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.2.4\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Node.js.App.jsx.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.EduWheelsApplication.executor": "Run",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/L22X07W37/IT342-BCD",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.2.4\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Xyrill\IdeaProjects\IT342-BCD\EduWheels\src\main" />
@@ -78,6 +79,9 @@
   </component>
   <component name="RunManager">
     <configuration name="EduWheelsApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <envs>
+        <env name="GCP_SA_KEY_JSON_CONTENT" value="{&quot;type&quot;:&quot;service_account&quot;,&quot;project_id&quot;:&quot;capable-conduit-451201-i7&quot;,&quot;private_key_id&quot;:&quot;d5242b0d6152dd12c17e6a9025e81b63dc34f85a&quot;,&quot;private_key&quot;:&quot;-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDTuepb17doOISe\nqaRapEvRZ6ydd4DuVvRRGiWG1fC/cDy+XDEOZifw0JjOh5wsVP9aH0onflicW5LB\noO33Mt2+AR08WqIubp082JgUVXPkZM4CFcz9T3FX/jA+a6dTV2PMQ7F+G9ZVmvio\nkPXMqs3hx34kkOP4m4jiN+0DU+mNdSSmloPeiUzsEtek/2RHTYIppOymgC5EvwMz\nip38FY7gR+n6NzI7s4kEtWo2jWSf/d6i26/UbCG/5PVhGhk89mwSDKA1Hmij9Qlq\n8RtD+J0ieCibeDNexr8jowzKGsQ7lyg8egocU8YUhTz2K0W5gt+B21ak2ky6Od8o\ntYE49uUhAgMBAAECggEASh2bPgJB+FBMkHQHDhnUVp4JrWe/cO9sgBV8jHpI1+L0\nyJhiLc2x7pk+3JFZKKWqa8RnQ3L1lupxcamhk7axK8mdD9sUSde74Chb+EY/lvR4\nrv8troDIRwq6nac2wDRnwYHy2JfrDDV/FRcFjFtATeh1LlywCP99R99W7yLJL5Ru\nldPAq8tav47IXwkdMQN7rY2xVRmDirAlkwy6/Loqn99i6TwEsOQSEnVmJAWdITy2\nsjZ5FM9LmwuUi8WvgnksDV0BqvzfbIuNJgVSM9K7OBR8thr0WEVyoA7JKwKMEswx\nG9jaYYXWoloaKgY0jX5v6KWYAIVCKkypNTLxf15FtwKBgQDzCG8w8gGRxa5Mb6yN\ns2604DPpmWnnaa0flYB/z0p5IfN11OvfILf6qavx0wJ55MHbvaXf1CNRuGdW+scf\n3H0VCmyXPm18g7ECpJFF+hpHgpxJUsJIj15ouL1R8+e2svRHZlgd8L6yjWI0KIRU\nXlq7JUNR/DDJqL8E7Ww/PDZXtwKBgQDfBd2O/zWzvdK4nZSgx4/EdyY/xi4WjuGG\nHYxEsKqeuRzvd0ur3/MXr9VKYFfB9AGzn7paiOATr9vCU8DVyiPviAdrzYxPr5ht\n+fY+9f/jeMuOBNdBN0mNMjYqZ6QbhHiWX4xWB51xkn/dScGg1PMnzaHyqIwzhw/y\nActUDMo55wKBgQCN7N8CNlG0Tzz6Zjzeg2qjNksan/y4p33yc9wWx3c2Rh1nMnCM\nXQ8T0wIWtqM7i9up95Zmn/wAPTAcG1ctxBVHtE62BD7r9/vnDzPHKccu+5dJOos6\n1H7NqRTmRwmKJ/d/usS6t1yl6Orwiri8jF1v7NLjjeLv4RusRPpx8zfJAQKBgQCT\n23alDCvVS179yHM2GLgG35t7Im+Bwx5fZQ2OqLWlX0KAvE1t2J54sLkugysLSjMq\nnBXXWfF8+9UtQ4uP8WDbuAp7fR2t4tOi7dpEqaEJdRc2w5zV/sqDkqt4d5fEKpIr\n15LZoljOZ/rfgbueXjAKzni0wOuaacu3fVsJESWtNwKBgFIRL59aSJJ5leaxDJv2\nzCnF2XJVvElu806iTe0VCBO3qjNaO7N49m9eysW0kLhNEtt98gU56/BbvObPjWXj\nri5yiC4hiJWX12C+R8SNPXQ1FVhIFIci3Hld3jqxDMGtSugBRsJ+Whp7CL5hykB/\ntnmuR9JaOs6f9HSNEuyC6V/B\n-----END PRIVATE KEY-----\n&quot;,&quot;client_email&quot;:&quot;eduwheels-backend@capable-conduit-451201-i7.iam.gserviceaccount.com&quot;,&quot;client_id&quot;:&quot;107898754177353298513&quot;,&quot;auth_uri&quot;:&quot;https://accounts.google.com/o/oauth2/auth&quot;,&quot;token_uri&quot;:&quot;https://oauth2.googleapis.com/token&quot;,&quot;auth_provider_x509_cert_url&quot;:&quot;https://www.googleapis.com/oauth2/v1/certs&quot;,&quot;client_x509_cert_url&quot;:&quot;https://www.googleapis.com/robot/v1/metadata/x509/eduwheels-backend%40capable-conduit-451201-i7.iam.gserviceaccount.com&quot;,&quot;universe_domain&quot;:&quot;googleapis.com&quot;}" />
+      </envs>
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
       <module name="EduWheels" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.eduwheels.EduWheelsApplication" />

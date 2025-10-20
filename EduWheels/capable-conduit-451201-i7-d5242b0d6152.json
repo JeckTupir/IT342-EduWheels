@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "capable-conduit-451201-i7",
+  "private_key_id": "d5242b0d6152dd12c17e6a9025e81b63dc34f85a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDTuepb17doOISe\nqaRapEvRZ6ydd4DuVvRRGiWG1fC/cDy+XDEOZifw0JjOh5wsVP9aH0onflicW5LB\noO33Mt2+AR08WqIubp082JgUVXPkZM4CFcz9T3FX/jA+a6dTV2PMQ7F+G9ZVmvio\nkPXMqs3hx34kkOP4m4jiN+0DU+mNdSSmloPeiUzsEtek/2RHTYIppOymgC5EvwMz\nip38FY7gR+n6NzI7s4kEtWo2jWSf/d6i26/UbCG/5PVhGhk89mwSDKA1Hmij9Qlq\n8RtD+J0ieCibeDNexr8jowzKGsQ7lyg8egocU8YUhTz2K0W5gt+B21ak2ky6Od8o\ntYE49uUhAgMBAAECggEASh2bPgJB+FBMkHQHDhnUVp4JrWe/cO9sgBV8jHpI1+L0\nyJhiLc2x7pk+3JFZKKWqa8RnQ3L1lupxcamhk7axK8mdD9sUSde74Chb+EY/lvR4\nrv8troDIRwq6nac2wDRnwYHy2JfrDDV/FRcFjFtATeh1LlywCP99R99W7yLJL5Ru\nldPAq8tav47IXwkdMQN7rY2xVRmDirAlkwy6/Loqn99i6TwEsOQSEnVmJAWdITy2\nsjZ5FM9LmwuUi8WvgnksDV0BqvzfbIuNJgVSM9K7OBR8thr0WEVyoA7JKwKMEswx\nG9jaYYXWoloaKgY0jX5v6KWYAIVCKkypNTLxf15FtwKBgQDzCG8w8gGRxa5Mb6yN\ns2604DPpmWnnaa0flYB/z0p5IfN11OvfILf6qavx0wJ55MHbvaXf1CNRuGdW+scf\n3H0VCmyXPm18g7ECpJFF+hpHgpxJUsJIj15ouL1R8+e2svRHZlgd8L6yjWI0KIRU\nXlq7JUNR/DDJqL8E7Ww/PDZXtwKBgQDfBd2O/zWzvdK4nZSgx4/EdyY/xi4WjuGG\nHYxEsKqeuRzvd0ur3/MXr9VKYFfB9AGzn7paiOATr9vCU8DVyiPviAdrzYxPr5ht\n+fY+9f/jeMuOBNdBN0mNMjYqZ6QbhHiWX4xWB51xkn/dScGg1PMnzaHyqIwzhw/y\nActUDMo55wKBgQCN7N8CNlG0Tzz6Zjzeg2qjNksan/y4p33yc9wWx3c2Rh1nMnCM\nXQ8T0wIWtqM7i9up95Zmn/wAPTAcG1ctxBVHtE62BD7r9/vnDzPHKccu+5dJOos6\n1H7NqRTmRwmKJ/d/usS6t1yl6Orwiri8jF1v7NLjjeLv4RusRPpx8zfJAQKBgQCT\n23alDCvVS179yHM2GLgG35t7Im+Bwx5fZQ2OqLWlX0KAvE1t2J54sLkugysLSjMq\nnBXXWfF8+9UtQ4uP8WDbuAp7fR2t4tOi7dpEqaEJdRc2w5zV/sqDkqt4d5fEKpIr\n15LZoljOZ/rfgbueXjAKzni0wOuaacu3fVsJESWtNwKBgFIRL59aSJJ5leaxDJv2\nzCnF2XJVvElu806iTe0VCBO3qjNaO7N49m9eysW0kLhNEtt98gU56/BbvObPjWXj\nri5yiC4hiJWX12C+R8SNPXQ1FVhIFIci3Hld3jqxDMGtSugBRsJ+Whp7CL5hykB/\ntnmuR9JaOs6f9HSNEuyC6V/B\n-----END PRIVATE KEY-----\n",
+  "client_email": "eduwheels-backend@capable-conduit-451201-i7.iam.gserviceaccount.com",
+  "client_id": "107898754177353298513",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/eduwheels-backend%40capable-conduit-451201-i7.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

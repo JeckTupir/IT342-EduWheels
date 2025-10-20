@@ -89,7 +89,8 @@ class Register : Activity() {
     private fun fetchExistingUsers() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.74.208:8080/users")
+                // For Android Emulator, use 10.0.2.2 to access host machine's localhost
+                val url = URL("http://10.0.2.2:8080/users")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
 
@@ -131,7 +132,8 @@ class Register : Activity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://192.168.74.208:8080/users/signup")
+                // For Android Emulator, use 10.0.2.2 to access host machine's localhost
+                val url = URL("http://10.0.2.2:8080/users/signup")
                 val connection = url.openConnection() as HttpURLConnection
 
                 connection.requestMethod = "POST"

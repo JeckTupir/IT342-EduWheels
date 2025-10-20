@@ -49,7 +49,7 @@ export default function BookingPage() {
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
-                const response = await axios.get("https://it342-eduwheels.onrender.com/api/vehicles");
+                const response = await axios.get("http://localhost:8080/api/vehicles");
                 let availableVehicles = response.data.filter(vehicle => vehicle.status === "Available" && vehicle.capacity >= passengers);
                 availableVehicles.sort((a, b) => (a.availableSeats ?? a.capacity) - (b.availableSeats ?? b.capacity));
                 setVehicles(availableVehicles);
@@ -100,7 +100,7 @@ export default function BookingPage() {
         };
 
         try {
-            await axios.post("https://it342-eduwheels.onrender.com/api/bookings", bookingData, {
+            await axios.post("http://localhost:8080/api/bookings", bookingData, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
             alert("Booking successful!");
