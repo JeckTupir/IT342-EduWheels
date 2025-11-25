@@ -1,7 +1,9 @@
 package com.example.eduwheels.Controller;
 
 import com.example.eduwheels.Entity.BookingEntity;
+import com.example.eduwheels.Entity.VehicleEntity;
 import com.example.eduwheels.Service.BookingService;
+import com.example.eduwheels.dto.LocationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +69,33 @@ public class BookingController {
         }
     }
 
+    // --- NEW: Check Vehicle Seat Availability Before Booking ---
+    @GetMapping("/vehicle/{plateNumber}/availability")
+    public ResponseEntity<?> checkVehicleAvailability(@PathVariable String plateNumber) {
+        try {
+            VehicleEntity vehicle = bookingService.getVehicleByPlateNumber(plateNumber);
+
+            // Auto-update status based on seats
+            if (vehicle.getAvailableSeats() == 0) {
+                vehicle.setStatus("FULL");
+            } else {
+                vehicle.setStatus("AVAILABLE");
+            }
+
+            return ResponseEntity.ok(
+                    java.util.Map.of(
+                            "plateNumber", vehicle.getPlateNumber(),
+                            "vehicleName", vehicle.getVehicleName(),
+                            "availableSeats", vehicle.getAvailableSeats(),
+                            "capacity", vehicle.getCapacity(),
+                            "status", vehicle.getStatus()
+                    )
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vehicle not found: " + plateNumber);
+        }
+    }
+
     // 🧹 Cleaner Request DTO
     public static class BookingRequest {
         private LocalDateTime startDate;
@@ -75,8 +104,14 @@ public class BookingController {
         private String status;
         private String plateNumber;
         private Integer vehicleAvailableSeats;
+        
+        // LEGACY: Keep these for backward compatibility
         private String pickUp;
         private String dropOff;
+        
+        // NEW: Add LocationDTO fields
+        private LocationDTO pickUpLocation;
+        private LocationDTO dropOffLocation;
 
         // Getters and Setters
         public LocalDateTime getStartDate() {
@@ -134,5 +169,22 @@ public class BookingController {
         public String getDropOff() { return dropOff; }
 
         public void setDropOff(String dropOff) { this.dropOff = dropOff; }
+        
+        // NEW: LocationDTO getters and setters
+        public LocationDTO getPickUpLocation() {
+            return pickUpLocation;
+        }
+
+        public void setPickUpLocation(LocationDTO pickUpLocation) {
+            this.pickUpLocation = pickUpLocation;
+        }
+
+        public LocationDTO getDropOffLocation() {
+            return dropOffLocation;
+        }
+
+        public void setDropOffLocation(LocationDTO dropOffLocation) {
+            this.dropOffLocation = dropOffLocation;
+        }
     }
 }

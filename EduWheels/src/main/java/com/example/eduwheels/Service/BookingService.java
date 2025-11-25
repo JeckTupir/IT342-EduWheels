@@ -39,6 +39,12 @@ public class BookingService {
         return bookingRepository.findById(id);
     }
 
+    // --- NEW: FOR Check Vehicle Seat Availability Before Booking ---
+    public VehicleEntity getVehicleByPlateNumber(String plateNumber) {
+        return vehicleRepository.findByPlateNumber(plateNumber)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found: " + plateNumber));
+    }
+
     public BookingEntity createBooking(BookingRequest bookingRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -76,12 +82,38 @@ public class BookingService {
         if (vehicle.getAvailableSeats() < bookingRequest.getNumberOfPassengers()) {
             throw new IllegalArgumentException("Not enough seats available in vehicle with plate number: " + vehicle.getPlateNumber());
         }
-        vehicle.setAvailableSeats(vehicle.getAvailableSeats() - bookingRequest.getNumberOfPassengers());
+
+// Deduct seats
+        int updatedSeats = vehicle.getAvailableSeats() - bookingRequest.getNumberOfPassengers();
+        vehicle.setAvailableSeats(updatedSeats);
+
+// Update vehicle status based on seats
+        if (updatedSeats == 0) {
+            vehicle.setStatus("FULL");
+        } else {
+            vehicle.setStatus("AVAILABLE");
+        }
+
         vehicleRepository.save(vehicle);
 
         BookingEntity booking = new BookingEntity();
-        booking.setPickUp(bookingRequest.getPickUp());
-        booking.setDropOff(bookingRequest.getDropOff());
+        
+        // Handle location data - support both old and new format
+        if (bookingRequest.getPickUpLocation() != null) {
+            // New format with LocationDTO
+            booking.setPickUpLocation(bookingRequest.getPickUpLocation());
+        } else {
+            // Legacy format with plain string
+            booking.setPickUp(bookingRequest.getPickUp());
+        }
+        
+        if (bookingRequest.getDropOffLocation() != null) {
+            // New format with LocationDTO
+            booking.setDropOffLocation(bookingRequest.getDropOffLocation());
+        } else {
+            // Legacy format with plain string
+            booking.setDropOff(bookingRequest.getDropOff());
+        }
         booking.setRequestDate(LocalDateTime.now());
         booking.setStartDate(bookingRequest.getStartDate());
         booking.setEndDate(bookingRequest.getEndDate());

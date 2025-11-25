@@ -71,6 +71,7 @@ public class SecurityConfig {
                                 "/login",
                                 "/complete-profile",
                                 "/api/vehicles/**",
+                                "/api/bookings/vehicle/*/availability",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",

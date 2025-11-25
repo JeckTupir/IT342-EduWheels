@@ -1,62 +1,108 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../HeaderLoggedIn';
 import axios from 'axios';
 import './BookingPage.css';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import AddressAutocomplete from '../../components/AddressAutocomplete';
+import DraggableMapModal from '../../components/DraggableMapModal';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+  CircularProgress,
+  Card,
+  CardMedia,
+  CardContent,
+  IconButton,
+  Divider
+} from '@mui/material';
+import {
+  ChevronLeft,
+  ChevronRight,
+  DirectionsCar,
+  People,
+  CheckCircle,
+  Map as MapIcon
+} from '@mui/icons-material';
 
-// --- Leaflet Icon Setup ---
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerRetina from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerRetina,
-    iconUrl: markerIcon,
-    shadowUrl: shadowUrl
-});
-// --- End Leaflet Icon Setup ---
-
-function LocationPicker({ setAddress, addressType }) {
-    useMapEvents({
-        click: (e) => {
-            setAddress(prev => ({ ...prev, [addressType]: `${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}` }));
-        },
-    });
-    return null;
-}
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function BookingPage() {
     const navigate = useNavigate();
     const [vehicles, setVehicles] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [addresses, setAddresses] = useState({ pickup: '', dropoff: '' });
-    const [showPickupMap, setShowPickupMap] = useState(false);
-    const [showDropoffMap, setShowDropoffMap] = useState(false);
+    const [pickUpLocation, setPickUpLocation] = useState(null);
+    const [dropOffLocation, setDropOffLocation] = useState(null);
     const [passengers, setPassengers] = useState(1);
-    const mapRef = useRef(null);
-    const defaultCenter = [10.2914, 123.8943];
-    const defaultZoom = 13;
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+    const [mapModalOpen, setMapModalOpen] = useState(false);
 
     const getImageUrl = (path) => {
-        if (!path) return null;
-        return path; // The 'path' from your backend will already be the full GCS URL
+        if (!path) return '/assets/bus-logo.png';
+        return path;
     };
 
+    // --- NEW: Check Vehicle Seat Availability Before Booking ---
+    const refreshVehicleAvailability = async (vehicles) => {
+        const updatedList = [];
+
+        for (const v of vehicles) {
+            try {
+                const res = await axios.get(
+                    `${API_BASE_URL}/api/bookings/vehicle/${v.plateNumber}/availability`
+                );
+
+                const updated = {
+                    ...v,
+                    availableSeats: res.data.availableSeats,
+                    status: res.data.availableSeats > 0 ? "Available" : "Full"
+                };
+
+                updatedList.push(updated);
+            } catch (error) {
+                console.error("Error refreshing seat availability:", error);
+                updatedList.push(v); // fallback
+            }
+        }
+
+        return updatedList;
+    };
+
+    // Fetch vehicles based on passenger count
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
-                const response = await axios.get("http://localhost:8080/api/vehicles");
-                let availableVehicles = response.data.filter(vehicle => vehicle.status === "Available" && vehicle.capacity >= passengers);
-                availableVehicles.sort((a, b) => (a.availableSeats ?? a.capacity) - (b.availableSeats ?? b.capacity));
+                setLoading(true);
+                setError(null);
+
+                // 1. Load from database
+                const response = await axios.get(`${API_BASE_URL}/api/vehicles`);
+                let allVehicles = response.data;
+
+                // 2. Refresh availability using your new backend API
+                allVehicles = await refreshVehicleAvailability(allVehicles);
+
+                // 3. Filter only AVAILABLE vehicles with enough seats
+                let availableVehicles = allVehicles.filter(
+                    v => v.status === "Available" && v.availableSeats >= passengers
+                );
+
+                // 4. Sort lowest seats first
+                availableVehicles.sort((a, b) => a.availableSeats - b.availableSeats);
+
+                // 5. Update UI
                 setVehicles(availableVehicles);
                 setCurrentIndex(0);
+
             } catch (error) {
                 console.error("Error fetching vehicles:", error);
-                alert("Could not load available vehicles. Please try refreshing.");
+                setError("Could not load available vehicles.");
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -67,31 +113,87 @@ export default function BookingPage() {
         }
     }, [passengers]);
 
+    // --- NEW: Check Vehicle Seat Availability Before Booking ---
+    const checkSeatAvailability = async (plateNumber) => {
+        try {
+            const response = await axios.get(
+                `${API_BASE_URL}/api/bookings/vehicle/${plateNumber}/availability`
+            );
+            return response.data; // contains updated availableSeats + status
+        } catch (error) {
+            console.error("Error checking seat availability:", error);
+            return null;
+        }
+    };
+
     const handleBookNow = async () => {
-        if (!vehicles[currentIndex]) {
-            alert("No vehicle selected.");
+        // LIVE SEAT CHECK BEFORE BOOKING
+        const refreshedVehicle = await checkSeatAvailability(vehicles[currentIndex].plateNumber);
+
+        if (!refreshedVehicle) {
+            setError("Unable to verify seat availability. Please try again.");
             return;
         }
-        if (!addresses.pickup || !addresses.dropoff) {
-            alert("Please select both pick-up and drop-off locations.");
+
+// If seats already updated to 0
+        if (refreshedVehicle.availableSeats <= 0) {
+            setError(`This vehicle is now FULL. Please choose another one.`);
+            return;
+        }
+
+// If passenger count exceeds current availability
+        if (passengers > refreshedVehicle.availableSeats) {
+            setError(
+                `Only ${refreshedVehicle.availableSeats} seat(s) left. Please reduce passengers or choose another vehicle.`
+            );
+            return;
+        }
+
+        // Validation
+        if (!vehicles[currentIndex]) {
+            setError("No vehicle selected.");
+            return;
+        }
+        if (!pickUpLocation || !pickUpLocation.address) {
+            setError("Please select a pick-up location.");
+            return;
+        }
+        if (!dropOffLocation || !dropOffLocation.address) {
+            setError("Please select a drop-off location.");
             return;
         }
         if (passengers <= 0 || passengers > vehicles[currentIndex].capacity) {
-            alert(`Please enter a valid number of passengers (1-${vehicles[currentIndex].capacity}).`);
+            setError(`Please enter a valid number of passengers (1-${vehicles[currentIndex].capacity}).`);
             return;
         }
 
         const token = localStorage.getItem('token');
         if (!token) {
-            alert("Authentication required. Please log in.");
-            navigate('/login');
+            setError("Authentication required. Please log in.");
+            setTimeout(() => navigate('/login'), 2000);
             return;
         }
 
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+
+        // Create booking data with new location format
         const bookingData = {
             plateNumber: vehicles[currentIndex].plateNumber,
-            pickUp: addresses.pickup,
-            dropOff: addresses.dropoff,
+            vehicleAvailableSeats: vehicles[currentIndex].availableSeats,
+            pickUpLocation: {
+                address: pickUpLocation.address,
+                latitude: pickUpLocation.latitude,
+                longitude: pickUpLocation.longitude,
+                placeId: pickUpLocation.placeId
+            },
+            dropOffLocation: {
+                address: dropOffLocation.address,
+                latitude: dropOffLocation.latitude,
+                longitude: dropOffLocation.longitude,
+                placeId: dropOffLocation.placeId
+            },
             requestDate: new Date().toISOString(),
             startDate: new Date().toISOString(),
             endDate: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
@@ -100,168 +202,292 @@ export default function BookingPage() {
         };
 
         try {
-            await axios.post("http://localhost:8080/api/bookings", bookingData, {
-                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+            await axios.post(`${API_BASE_URL}/api/bookings`, bookingData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
-            alert("Booking successful!");
-            navigate("/profile");
+            setSuccess("Booking successful! Redirecting to your profile...");
+            setTimeout(() => navigate("/profile"), 2000);
         } catch (error) {
             console.error("Error creating booking:", error);
-            alert(`Failed to create booking: ${error.message}`);
+            const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message;
+            setError(`Failed to create booking: ${errorMsg}`);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handlePrev = () => {
-        setCurrentIndex((prevIndex) => (prevIndex === 0 ? vehicles.length - 1 : prevIndex - 1));
+        setCurrentIndex((prevIndex) =>
+            prevIndex === 0 ? vehicles.length - 1 : prevIndex - 1
+        );
     };
 
     const handleNext = () => {
-        setCurrentIndex((prevIndex) => (prevIndex === vehicles.length - 1 ? 0 : prevIndex + 1));
+        setCurrentIndex((prevIndex) =>
+            prevIndex === vehicles.length - 1 ? 0 : prevIndex + 1
+        );
     };
 
-    const closePickupMap = () => setShowPickupMap(false);
-    const closeDropoffMap = () => setShowDropoffMap(false);
+    // Handle map modal
+    const handleOpenMapModal = () => {
+        setMapModalOpen(true);
+    };
+
+    const handleCloseMapModal = () => {
+        setMapModalOpen(false);
+    };
+
+    const handleLocationChange = (newPickUp, newDropOff) => {
+        setPickUpLocation(newPickUp);
+        setDropOffLocation(newDropOff);
+    };
+
+    const currentVehicle = vehicles[currentIndex];
 
     return (
-        <div className="booking-root">
-            {/*<Header />*/}
-            <div className="booking-container">
-                <div className="booking-form-section">
-                    <h2>Book Your Ride</h2>
-                    <div className="form-group">
-                        <label htmlFor="pickup-address">Pick-up Location</label>
-                        <div className="map-input-group">
-                            <input
-                                type="text"
-                                id="pickup-address"
-                                value={addresses.pickup}
-                                placeholder="Select on map"
-                                readOnly
-                            />
-                            <button type="button" onClick={() => setShowPickupMap(true)}>
-                                {addresses.pickup ? 'Change Pickup' : 'Select Pickup'}
-                            </button>
-                        </div>
-                        {showPickupMap && (
-                            <div className="map-modal">
-                                <h3>Select Pickup Location</h3>
-                                <MapContainer
-                                    ref={mapRef}
-                                    center={defaultCenter}
-                                    zoom={defaultZoom}
-                                    style={{ height: '300px', width: '100%' }}
-                                    whenCreated={mapInstance => { mapRef.current = mapInstance; }}
-                                >
-                                    <TileLayer
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    />
-                                    {addresses.pickup && (
-                                        <Marker position={addresses.pickup.split(', ').map(Number)}>
-                                            <Popup>Pickup Location</Popup>
-                                        </Marker>
-                                    )}
-                                    <LocationPicker setAddress={setAddresses} addressType="pickup" />
-                                </MapContainer>
-                                <button type="button" onClick={closePickupMap}>Confirm Pickup</button>
-                            </div>
-                        )}
-                    </div>
+        <Box className="booking-root" sx={{ minHeight: '100%', backgroundColor: '#f5f5f5', p: 1 }}>
+            <Box className="booking-container" sx={{ maxWidth: '1500px', margin: '0 auto', p: 1 }}>
+                {/* Header */}
 
-                    <div className="form-group">
-                        <label htmlFor="dropoff-address">Drop-off Location</label>
-                        <div className="map-input-group">
-                            <input
-                                type="text"
-                                id="dropoff-address"
-                                value={addresses.dropoff}
-                                placeholder="Select on map"
-                                readOnly
-                            />
-                            <button type="button" onClick={() => setShowDropoffMap(true)}>
-                                {addresses.dropoff ? 'Change Dropoff' : 'Select Dropoff'}
-                            </button>
-                        </div>
-                        {showDropoffMap && (
-                            <div className="map-modal">
-                                <h3>Select Dropoff Location</h3>
-                                <MapContainer
-                                    center={defaultCenter}
-                                    zoom={defaultZoom}
-                                    style={{ height: '300px', width: '100%' }}
-                                >
-                                    <TileLayer
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                    />
-                                    {addresses.dropoff && (
-                                        <Marker position={addresses.dropoff.split(', ').map(Number)}>
-                                            <Popup>Dropoff Location</Popup>
-                                        </Marker>
-                                    )}
-                                    <LocationPicker setAddress={setAddresses} addressType="dropoff" />
-                                </MapContainer>
-                                <button type="button" onClick={closeDropoffMap}>Confirm Dropoff</button>
-                            </div>
-                        )}
-                    </div>
+                {/* Error/Success Messages */}
+                {error && (
+                    <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3 }}>
+                        {error}
+                    </Alert>
+                )}
+                {success && (
+                    <Alert severity="success" sx={{ mb: 3 }}>
+                        {success}
+                    </Alert>
+                )}
 
-                    <div className="form-group">
-                        <label htmlFor="passengers">Number of Passengers</label>
-                        <input
-                            type="number"
-                            id="passengers"
-                            min="1"
-                            value={passengers}
-                            onChange={(e) => setPassengers(parseInt(e.target.value) || 1)}
-                            placeholder="Enter number of passengers"
-                        />
-                    </div>
-                </div>
+                <Box sx={{ display: 'flex', gap: 4, flexWrap: { xs: 'wrap', lg: 'nowrap' } }}>
+                    {/* Left Section - Booking Form */}
+                    <Paper elevation={3} sx={{ maxHeight: '500px', flex: 1, p: 4, minWidth: { xs: '100%', lg: '500px' } }}>
+                        <Typography variant="h5" gutterBottom sx={{ mb: 0, fontWeight: 'bold' }}>
+                            Trip Details
+                        </Typography>
 
-                <div className="vehicle-selection-section">
-                    <h2>Available Vehicles</h2>
-                    {vehicles.length > 0 ? (
-                        <div className="vehicle-carousel">
-                            <button
-                                type="button"
-                                className="carousel-control prev"
-                                onClick={handlePrev}
-                                disabled={vehicles.length <= 1}
-                            >
-                                &lt;
-                            </button>
-                            <div className="vehicle-card">
-                                <img
-                                    src={getImageUrl(vehicles[currentIndex]?.photoPath)}
-                                    alt={vehicles[currentIndex]?.name || vehicles[currentIndex]?.type || 'Vehicle'}
-                                    onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/300x200/cccccc/ffffff?text=No+Image"; }}
-                                    className="vehicle-image"
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            {/* Number of Passengers */}
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <People /> Number of Passengers
+                                </Typography>
+                                <TextField
+                                    type="number"
+                                    fullWidth
+                                    value={passengers}
+                                    onChange={(e) => setPassengers(Math.max(1, parseInt(e.target.value) || 1))}
+                                    InputProps={{ inputProps: { min: 1 } }}
+                                    placeholder="Enter number of passengers"
                                 />
-                                <div className="vehicle-details">
-                                    <h3>{vehicles[currentIndex]?.vehicleName || vehicles[currentIndex]?.name || vehicles[currentIndex]?.type || 'Vehicle'}</h3>
-                                    <p>Capacity: {vehicles[currentIndex]?.capacity} passengers</p>
-                                    <p>Available Seats: {vehicles[currentIndex]?.availableSeats ?? vehicles[currentIndex]?.capacity}</p>
-                                    <p>Plate Number: {vehicles[currentIndex]?.plateNumber}</p>
-                                </div>
-                                <button type="button" className="book-button" onClick={handleBookNow}>
-                                    Book This Vehicle
-                                </button>
-                            </div>
-                            <button
-                                type="button"
-                                className="carousel-control next"
-                                onClick={handleNext}
-                                disabled={vehicles.length <= 1}
-                            >
-                                &gt;
-                            </button>
-                        </div>
-                    ) : (
-                        <p>No vehicles available for the selected number of passengers.</p>
-                    )}
-                </div>
-            </div>
-        </div>
+                            </Box>
+
+                            <Divider />
+
+                            {/* Pick-up Location */}
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                </Typography>
+                                <AddressAutocomplete
+                                    value={pickUpLocation}
+                                    onChange={setPickUpLocation}
+                                    label="Pick-up Address"
+                                    placeholder="Enter pick-up address (e.g., University of Cebu)"
+                                    required
+                                    disabled={loading}
+                                />
+                            </Box>
+
+                            {/* Drop-off Location */}
+                            <Box>
+                                <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                </Typography>
+                                <AddressAutocomplete
+                                    value={dropOffLocation}
+                                    onChange={setDropOffLocation}
+                                    label="Drop-off Address"
+                                    placeholder="Enter drop-off address (e.g., Ayala Center Cebu)"
+                                    required
+                                    disabled={loading}
+                                />
+                            </Box>
+
+                            {/* Preview Map Button */}
+                            {(pickUpLocation || dropOffLocation) && (
+                                <Box sx={{ mt: 2 }}>                                    <Button
+                                        fullWidth
+                                        variant="outlined"
+                                        startIcon={<MapIcon />}
+                                        onClick={handleOpenMapModal}
+                                        sx={{
+                                            py: 1.5,
+                                            borderColor: '#CA8787',
+                                            color: '#CA8787',
+                                            '&:hover': {
+                                                borderColor: '#B57676',
+                                                backgroundColor: 'rgba(202, 135, 135, 0.1)',
+                                            },
+                                        }}
+                                    >
+                                        Preview & Adjust on Map
+                                    </Button>
+                                    <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                                        Drag markers to fine-tune locations
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Box>
+                    </Paper>
+
+                    {/* Right Section - Vehicle Selection */}
+                    <Paper elevation={3} sx={{ maxHeight: '500px',flex: 1, p: 4, minWidth: { xs: '100%', lg: '500px' } }}>
+                        <Typography variant="h5" gutterBottom sx={{ mb: 0, fontWeight: 'bold' }}>
+                            Available Vehicles
+                        </Typography>
+
+                        {loading && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                                <CircularProgress />
+                            </Box>
+                        )}
+
+                        {!loading && vehicles.length === 0 && (
+                            <Alert severity="info">
+                                No vehicles available for {passengers} passenger(s). Try adjusting the number of passengers.
+                            </Alert>
+                        )}
+
+                        {!loading && vehicles.length > 0 && currentVehicle && (
+                            <Box>
+                                {/* Vehicle Carousel */}
+                                <Box sx={{ position: 'relative' }}>
+                                    <Card>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                            <CardMedia
+                                                component="img"
+                                                sx={{
+                                                    width: 'auto',      // Forces image to be 150px wide
+                                                    height: 130,  // Maintains aspect ratio based on width
+                                                    borderRadius: 1
+                                                }}
+                                                image={getImageUrl(currentVehicle.photoPath)}
+                                                alt={currentVehicle.vehicleName || currentVehicle.type}
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = '/assets/bus-logo.png';
+                                                }}
+                                            />
+                                        </Box>
+                                        <CardContent>
+                                            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
+                                                {currentVehicle.vehicleName || currentVehicle.type}
+                                            </Typography>
+
+                                            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <Typography variant="body2" color="textSecondary">
+                                                        Capacity:
+                                                    </Typography>
+                                                    <Typography variant="body2" fontWeight="bold">
+                                                        {currentVehicle.capacity} passengers
+                                                    </Typography>
+                                                </Box>
+
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <Typography variant="body2" color="textSecondary">
+                                                        Available Seats:
+                                                    </Typography>
+                                                    <Typography variant="body2" fontWeight="bold" color="success.main">
+                                                        {currentVehicle.availableSeats ?? currentVehicle.capacity}
+                                                    </Typography>
+                                                </Box>
+
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <Typography variant="body2" color="textSecondary">
+                                                        Plate Number:
+                                                    </Typography>
+                                                    <Typography variant="body2" fontWeight="bold">
+                                                        {currentVehicle.plateNumber}
+                                                    </Typography>
+                                                </Box>
+
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <Typography variant="body2" color="textSecondary">
+                                                        Status:
+                                                    </Typography>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                        <CheckCircle color="success" fontSize="small" />
+                                                        <Typography variant="body2" fontWeight="bold" color="success.main">
+                                                            {currentVehicle.status}
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Carousel Controls */}
+                                    {vehicles.length > 1 && (
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                                            <IconButton
+                                                onClick={handlePrev}
+                                                sx={{ backgroundColor: '#fff', '&:hover': { backgroundColor: '#f5f5f5' } }}
+                                            >
+                                                <ChevronLeft />
+                                            </IconButton>
+
+                                            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                                                {currentIndex + 1} / {vehicles.length}
+                                            </Typography>
+
+                                            <IconButton
+                                                onClick={handleNext}
+                                                sx={{ backgroundColor: '#fff', '&:hover': { backgroundColor: '#f5f5f5' } }}
+                                            >
+                                                <ChevronRight />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+                                </Box>
+
+                                {/* Book Button */}
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    size="large"
+                                    onClick={handleBookNow}
+                                    disabled={loading || !pickUpLocation || !dropOffLocation}
+                                    startIcon={<DirectionsCar />}
+                                    sx={{
+                                        mt: 3,
+                                        py: 1.5,
+                                        backgroundColor: '#CA8787',
+                                        '&:hover': {
+                                            backgroundColor: '#B57676'
+                                        }
+                                    }}
+                                >
+                                    {loading ? 'Processing...' : 'Book This Vehicle'}
+                                </Button>
+                            </Box>
+                        )}
+                    </Paper>
+                </Box>
+
+                {/* Draggable Map Modal */}
+                <DraggableMapModal
+                    open={mapModalOpen}
+                    onClose={handleCloseMapModal}
+                    pickUp={pickUpLocation}
+                    dropOff={dropOffLocation}
+                    onLocationChange={handleLocationChange}
+                />
+            </Box>
+        </Box>
     );
 }

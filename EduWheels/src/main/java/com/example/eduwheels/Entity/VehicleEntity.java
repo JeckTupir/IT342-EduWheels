@@ -87,13 +87,11 @@ public class VehicleEntity {
     }
 
     public String getStatus() {
-        return status;
+        return this.status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-
-        this.vehicleName = vehicleName;
     }
 
     public String getPhotoPath() {

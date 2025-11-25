@@ -610,7 +610,7 @@ export default function AdminVehiclesPage() {
                             label="Status"
                         >
                             <MenuItem value="Available">Available</MenuItem>
-                            <MenuItem value="Rented">Rented</MenuItem>
+                            <MenuItem value="FULL">Full</MenuItem>
                             <MenuItem value="Unavailable">Unavailable</MenuItem>
                             <MenuItem value="Maintenance">Maintenance</MenuItem>
                         </Select>
