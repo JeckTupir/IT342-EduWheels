@@ -15,7 +15,11 @@ import backgroundImage from '/assets/background-image.png';
 import axios from 'axios';
 import {Link} from "react-router-dom";
 
-const API_BASE_URL = "https://it342-eduwheels.onrender.com";
+// Local development
+const API_BASE_URL = "http://localhost:8080";
+
+// Production
+// const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 export default function Login() {
     const [formData, setFormData] = useState({

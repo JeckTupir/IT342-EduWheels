@@ -47,7 +47,7 @@ const getAuthToken = () => {
     return localStorage.getItem('token'); // Example: retrieve from local storage
 };
 
-const API_BASE_URL = 'https://it342-eduwheels.onrender.com'; // Keep base URL separate
+const API_BASE_URL = 'http://localhost:8080'; // Keep base URL separate
 const VEHICLES_API = `${API_BASE_URL}/api/vehicles`; // Endpoint for vehicles
 
 // Styled Components (Optional but recommended for consistency)
@@ -610,7 +610,7 @@ export default function AdminVehiclesPage() {
                             label="Status"
                         >
                             <MenuItem value="Available">Available</MenuItem>
-                            <MenuItem value="Rented">Rented</MenuItem>
+                            <MenuItem value="FULL">Full</MenuItem>
                             <MenuItem value="Unavailable">Unavailable</MenuItem>
                             <MenuItem value="Maintenance">Maintenance</MenuItem>
                         </Select>

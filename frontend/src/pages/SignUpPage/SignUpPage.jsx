@@ -8,7 +8,11 @@ import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
 import {Link} from "react-router-dom";
 
-const API_BASE_URL = "https://it342-eduwheels.onrender.com";
+// Local development
+const API_BASE_URL = "http://localhost:8080";
+
+// Production
+// const API_BASE_URL = "https://it342-eduwheels.onrender.com";
 
 export default function Signup() {
     const [formData, setFormData] = useState({

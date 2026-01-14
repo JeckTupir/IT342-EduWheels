@@ -1,17 +1,15 @@
 import './App.css'
 import RoutesComponent from './Routes';
-import './App.css'
+import { GoogleMapsProvider } from './components/GoogleMapsProvider';
 import 'leaflet/dist/leaflet.css';
 
-
 function App() {
-
   return (
-
+    <GoogleMapsProvider>
       <div>
-        <RoutesComponent/>
+        <RoutesComponent />
       </div>
-
+    </GoogleMapsProvider>
   )
 }
 
